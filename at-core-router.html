@@ -1,0 +1,371 @@
+﻿
+<polymer-element name="at-core-router">
+  <template>
+    <style>
+      #main {
+        overflow-x: hidden;
+        left: 0;
+      }
+
+      .view {
+        display: block;
+        position: absolute;
+        background-color: transparent;
+        width: calc(100% - 16px - 16px - 2px);
+        height: calc(100% - 16px - 16px - 2px);
+        margin: 16px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+
+        .view.back {
+          -webkit-transform: translate3d(-100%, 0, 0);
+          transform: translate3d(-100%, 0, 0);
+        }
+
+        .view.center {
+          -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+        }
+
+        .view.forward {
+          -webkit-transform: translate3d(100%, 0, 0);
+          transform: translate3d(100%, 0, 0);
+        }
+
+        .view.transition {
+          -webkit-transition-duration: .5s;
+          transition-duration: .5s;
+        }
+
+      .androidFix {
+        overflow: hidden !important;
+        overflow-y: hidden !important;
+        overflow-x: hidden !important;
+        display: none;
+      }
+    </style>
+
+    <div id="main"></div>
+  </template>
+  <script>
+    (function () {
+
+      var stateHistory = [];      // used to automatically detect a "back" navigation
+
+      var current = {
+        //stateManager: null,   // reference to 'this'
+        appFrame: null,         // frame / scaffold element
+        viewState: null,        // active state
+        boundElement: null,     // current active main element, bound to viewState args
+        direction: "none"       // forward, back, none  for view transition
+      }
+
+
+      var getVendorPrefix = function () {
+        var styles = window.getComputedStyle(document.documentElement, '');
+        var pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1];
+        var vPrefix = {
+          lowercase: pre,
+          css: '-' + pre + '-'
+        };
+
+        return vPrefix;
+      };
+
+      // Names for transition end events on various platforms
+      var transitionEndEventNames = {
+        webkit: "webkitTransitionEnd",
+        moz: "transitionend",
+        ms: "transitionend",
+        o: "otransitionend"
+      };
+
+      function getViewStateFromHash(hash) {
+        hash = hash || window.location.hash;
+        var vs = {};
+        args = {};
+
+        if (hash.indexOf("#!") == 0) {
+          hash = hash.substr(2);
+        } else if (hash.indexOf("#") == 0) {
+          hash = hash.substr(1);
+        }
+        var hashes = hash.split('?');
+        vs['view'] = hashes[0];
+
+        if (hashes.length > 1) {
+          hashes = hashes[1].split('&');
+
+          for (var i = 0; i < hashes.length; i++) {
+            var hash = hashes[i].split('=');
+            if (hash.length > 1) {
+              args[hash[0]] = decodeURIComponent(hash[1]);
+            } else {
+              args[hash[0]] = "";
+            }
+          }
+        }
+        vs.args = args;
+        return vs;
+      }
+
+      function encodeViewState(vs) {
+        var r = "";
+        var args = Object.getOwnPropertyNames(vs.args).sort();
+        for (var i in args) {
+          var argv = vs.args[args[i]];
+          r += (r > "" ? "&" : "") + args[i] + (argv != "" ? "=" + encodeURIComponent(argv) : "");
+        }
+
+        r = vs.view + (r > "" ? "?" + r : "");
+
+        return r;
+      }
+
+
+      function TransitionEndEventName() {
+        return transitionEndEventNames[getVendorPrefix().lowercase];
+      }
+
+      function fireEvent(eventName, viewState) {
+        var event = new CustomEvent(eventName, { "detail": current });
+        document.dispatchEvent(event);
+      }
+
+
+      Polymer('at-core-router', {
+        ready: function () {
+          this.context = current;
+        },
+        publish: {
+          defaultView: "home",
+          title: "",
+          enableBack: false
+        },
+        open: function (view) {
+
+          // close side panel before navigating
+          current.appFrame.parentElement.$.drawerPanel.closeDrawer();
+
+          view = "#!" + view;
+          window.location.hash = view;
+        },
+        viewChanged: function (e) {
+
+          var appFrame = e.detail.appFrame;
+          var vs = e.detail.viewState;
+          var viewName = vs.view;
+
+          // use default view name?
+          if (viewName == "") viewName = e.detail.appFrame.defaultView;
+
+          // add default prefix if no prefix is provided
+          if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
+
+          // repeat folder name if no file name is provided
+          if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;
+
+          // get element name
+          var elementName = viewName.substring(viewName.indexOf("/") + 1);
+
+          // update back button status
+          e.detail.appFrame.enableBack = stateHistory.length > 1;
+
+          var imports = [];
+          imports.push("components/" + viewName + ".html");
+
+          Polymer.import(imports, function () {
+
+            var newElem = document.createElement(elementName);
+            var trans = e.detail.direction;
+
+            // todo: improve handle/detect error
+            if (typeof newElem.publish == "undefined") {
+              alert("View " + elementName + " not found");
+              return;
+            }
+
+            var newView = newElem;
+            var currentView = e.detail.boundElement;
+
+            // load initial values
+            if (typeof newElem.publish != "undefined") {
+              var boundvars = Object.getOwnPropertyNames(newElem.publish);
+              for (var i in boundvars) {
+                var vname = boundvars[i];
+                var vval = vs.args[vname];
+                //newElem[vname] = (vval == undefined ? "" : vval);
+                if (vval != undefined) newElem[vname] = vval;
+              }
+            }
+
+            // save reference to now bound element
+            e.detail.boundElement = newElem;
+
+            // force immediate binding refresh for polyfill
+            Platform.flush();
+
+            // position views
+            if (currentView) {
+
+              newView.className = "view " + trans;
+              currentView.className = "view center";
+
+              // remove previous view when animation is finished
+              currentView.addEventListener(TransitionEndEventName(), function (e) {
+                appFrame.$.main.removeChild(e.target);
+              });
+
+            } else {
+
+              newView.className = "view center";
+
+            }
+
+            // remove hidden views which didn't trigger TransitionEndEvent
+            //     because of user interaction was faster then animation time
+            var hidden = appFrame.$.main.getElementsByClassName("hiddenview");
+            for (var i = 0; i < hidden.length; i++) {
+              appFrame.$.main.removeChild(hidden[i]);
+            }
+
+            // add view to appFrame
+            if (appFrame.$.main.firstChild) {
+              appFrame.$.main.insertBefore(newElem, appFrame.$.main.firstChild);
+            } else {
+              appFrame.$.main.appendChild(newElem);
+            }
+         
+
+            // scroll to top - Chrome & Android require workaround or scrollTop fails
+            var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
+
+            if (androidFixRequired) appFrame.$.main.classList.add("androidFix");
+            appFrame.$.main.scrollTop = 0;
+            if (androidFixRequired) appFrame.$.main.classList.remove("androidFix");
+
+
+            // Force reflow to make sure the style changes
+            // are applied before rendering the element
+            appFrame.$.main.offsetWidth;
+            
+
+            // Position the new page and the current page at the ending position of their animation
+            // with a transition class indicating the duration of the animation
+            if (currentView) {
+              newView.className = "view transition center";
+              currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+            } else {
+              // initial view shows without transistion
+              newView.className = "view center";
+            }
+
+
+            // call viewReady of new view element
+            if (typeof newElem.viewReady == "function") {
+              newElem.viewReady(e.detail);
+            }
+          })
+
+        },
+        viewArgsChanged: function (e) {
+          var vs = e.detail.viewState;
+          var elem = e.detail.boundElement;
+
+          // update bound values
+          var boundvars = Object.getOwnPropertyNames(elem.publish);
+          for (var i in boundvars) {
+            var vname = boundvars[i];
+            var vval = vs.args[vname];
+            //newElem[vname] = (vval == undefined ? "" : vval);
+            if (vval != undefined) elem[vname] = vval;
+          }
+
+          // force immediate binding refresh for polyfill
+          Platform.flush();
+
+        },
+
+        hashChanged: function (e) {
+
+          var newVs = getViewStateFromHash();
+
+          // ignore if we state didn't really change
+          if (encodeViewState(current.viewState) == encodeViewState(newVs)) return;
+
+          // update nav history, detect direction
+          var l = stateHistory.length;
+          var state = encodeViewState(newVs);
+
+          if (l === 0) {
+            stateHistory.push(state);
+            current.direction = "forward";
+          }
+          if (state === stateHistory[l - 2]) {
+            stateHistory.pop();
+            current.direction = "back";
+          } else {
+            stateHistory.push(state);
+            current.direction = "forward";
+          }
+
+
+
+          // detect type of change
+          var eventName = "view-changed";
+          if (newVs.view == current.viewState.view) {
+            current.direction = "none";
+            eventName = "view-args-changed";
+          }
+
+          // save new viewState
+          current.viewState = newVs;
+
+          // fire event
+          fireEvent(eventName, newVs);
+        },
+
+        start: function (appFrame) {
+
+          // save atApp reference
+          current.appFrame = appFrame;
+
+          // get initial viewState
+          var vs = getViewStateFromHash();
+
+          // set default view if no view name exists
+          if (vs.view == "") vs.view = this.defaultView;
+
+          // set initial, normalized hash
+          var state = encodeViewState(vs);
+          window.location.hash = "#!" + state;
+
+          // save initial hash to navigation stack
+          stateHistory.push(state);
+
+          // save initial viewState
+          current.viewState = vs;
+
+          // list to hash change events
+          window.onhashchange = this.hashChanged;
+
+          // fire view-changed to load initial view
+          fireEvent("view-changed", vs);
+        },
+        ready: function () {
+
+          document.addEventListener('view-changed', this.viewChanged, false);
+          document.addEventListener('view-args-changed', this.viewArgsChanged, false);
+
+          this.start(this);
+        }
+
+
+      });
+    })(); </script>
+</polymer-element>
