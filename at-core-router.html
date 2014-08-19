@@ -145,7 +145,7 @@
         },
         publish: {
           defaultView: "home",
-          title: "",
+          caption: "",
           enableBack: false
         },
         open: function (view) {
@@ -241,7 +241,7 @@
             } else {
               appFrame.$.main.appendChild(newElem);
             }
-         
+
 
             // scroll to top - Chrome & Android require workaround or scrollTop fails
             var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
@@ -254,7 +254,7 @@
             // Force reflow to make sure the style changes
             // are applied before rendering the element
             appFrame.$.main.offsetWidth;
-            
+
 
             // Position the new page and the current page at the ending position of their animation
             // with a transition class indicating the duration of the animation
@@ -265,7 +265,6 @@
               // initial view shows without transistion
               newView.className = "view center";
             }
-
 
             // call viewReady of new view element
             if (typeof newElem.viewReady == "function") {
