@@ -63,7 +63,8 @@
         appFrame: null,         // frame / scaffold element
         viewState: null,        // active state
         boundElement: null,     // current active main element, bound to viewState args
-        direction: "none"       // forward, back, none  for view transition
+        direction: "none",      // forward, back, none  for view transition
+        observer: null          // object observer for view arg changes
       }
 
 
@@ -169,7 +170,7 @@
           if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
 
           //// repeat folder name if no file name is provided
-          //if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;          
+          //if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;
 
           // get element name
           var elementName = viewName.substring(viewName.indexOf("/") + 1);
@@ -207,6 +208,35 @@
                 if (vval != undefined) newElem[vname] = vval;
               }
             }
+
+            // observe view for view arg changes
+            vs.observer = new ObjectObserver(newElem);
+            vs.observer.open(function (added, removed, changed, getOldValueFn) {
+
+              Object.keys(changed).forEach(function (property) {
+                console.log("changed " + property + ": " + getOldValueFn(property) + " > " + changed[property]);
+                var vold = vs.args[property];
+
+                if (vold != undefined) {
+                  var vnew = changed[property];
+                  debugger;
+                  // parameter value changed -> update hash
+                  if (vnew != vold) {
+                    vs.args[property] = changed[property];
+
+                    // get new normalized hash
+                    var state = encodeViewState(vs);
+                    window.location.hash = "#!" + state;
+
+                    // save new hash to navigation stack
+                    stateHistory.push(state);
+
+                    // save current viewState
+                    current.viewState = vs;
+                  }
+                }
+              });
+            });
 
             // save reference to now bound element
             e.detail.boundElement = newElem;
@@ -318,7 +348,6 @@
           }
 
 
-
           // detect type of change
           var eventName = "view-changed";
           if (newVs.view == current.viewState.view) {
@@ -370,5 +399,5 @@
 
 
       });
-    })(); </script>
+})(); </script>
 </polymer-element>
