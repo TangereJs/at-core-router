@@ -168,8 +168,8 @@
           // add default prefix if no prefix is provided
           if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
 
-          // repeat folder name if no file name is provided
-          if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;
+          //// repeat folder name if no file name is provided
+          //if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;          
 
           // get element name
           var elementName = viewName.substring(viewName.indexOf("/") + 1);
@@ -177,8 +177,11 @@
           // update back button status
           e.detail.appFrame.enableBack = stateHistory.length > 1;
 
+          var compUrl = document.URL.indexOf("/components/") >= 0 ? "../" : "components/";
+
           var imports = [];
-          imports.push("components/" + viewName + ".html");
+          // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
+          imports.push(viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html");
 
           Polymer.import(imports, function () {
 
