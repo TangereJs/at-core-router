@@ -21,21 +21,25 @@
         bottom: 0;
         -webkit-transform: translate3d(0, 0, 0);
         transform: translate3d(0, 0, 0);
+        will-change: transform;
       }
 
         .view.back {
           -webkit-transform: translate3d(-100%, 0, 0);
           transform: translate3d(-100%, 0, 0);
+          will-change: transform;
         }
 
         .view.center {
           -webkit-transform: translate3d(0, 0, 0);
           transform: translate3d(0, 0, 0);
+          will-change: transform;
         }
 
         .view.forward {
           -webkit-transform: translate3d(100%, 0, 0);
           transform: translate3d(100%, 0, 0);
+          will-change: transform;
         }
 
         .view.transition {
@@ -63,6 +67,7 @@
         appFrame: null,         // frame / scaffold element
         viewState: null,        // active state
         boundElement: null,     // current active main element, bound to viewState args
+        boundVars: null,        // collection of names for bound variables of current component
         direction: "none",      // forward, back, none  for view transition
         observer: null          // object observer for view arg changes
       }
@@ -201,6 +206,8 @@
             // load initial values
             if (typeof newElem.publish != "undefined") {
               var boundvars = Object.getOwnPropertyNames(newElem.publish);
+              current.boundVars = boundvars;
+
               for (var i in boundvars) {
                 var vname = boundvars[i];
                 var vval = vs.args[vname];
@@ -210,18 +217,18 @@
             }
 
             // observe view for view arg changes
-            vs.observer = new ObjectObserver(newElem);
-            vs.observer.open(function (added, removed, changed, getOldValueFn) {
+            current.observer = new ObjectObserver(newElem);
+            current.observer.open(function (added, removed, changed, getOldValueFn) {
 
               Object.keys(changed).forEach(function (property) {
-                console.log("changed " + property + ": " + getOldValueFn(property) + " > " + changed[property]);
-                var vold = vs.args[property];
+                //console.log("changed " + property + ": " + getOldValueFn(property) + " > " + changed[property]);
 
-                if (vold != undefined) {
+                if (current.boundVars.indexOf(property) >= 0) {
+                  var vold = vs.args[property];
                   var vnew = changed[property];
-                  debugger;
+
                   // parameter value changed -> update hash
-                  if (vnew != vold) {
+                  if (vold == undefined || vnew != vold) {
                     vs.args[property] = changed[property];
 
                     // get new normalized hash
@@ -315,8 +322,8 @@
           for (var i in boundvars) {
             var vname = boundvars[i];
             var vval = vs.args[vname];
-            //newElem[vname] = (vval == undefined ? "" : vval);
-            if (vval != undefined) elem[vname] = vval;
+            elem[vname] = (vval == undefined ? "" : vval);
+            //if (vval != undefined) elem[vname] = vval;
           }
 
           // force immediate binding refresh for polyfill
@@ -399,5 +406,6 @@
 
 
       });
-})(); </script>
+    })();
+  </script>
 </polymer-element>
