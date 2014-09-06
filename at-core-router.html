@@ -203,47 +203,49 @@
             var newView = newElem;
             var currentView = e.detail.boundElement;
 
-            // load initial values
+            // load initial values and bind them
+            current.observer = new CompoundObserver();
             if (typeof newElem.publish != "undefined") {
               var boundvars = Object.getOwnPropertyNames(newElem.publish);
               current.boundVars = boundvars;
 
               for (var i in boundvars) {
                 var vname = boundvars[i];
-                var vval = vs.args[vname];
-                //newElem[vname] = (vval == undefined ? "" : vval);
+                var vval = vs.args[vname];                
                 if (vval != undefined) newElem[vname] = vval;
+                current.observer.addPath(newElem, vname);
               }
             }
 
-            // observe view for view arg changes
-            current.observer = new ObjectObserver(newElem);
-            current.observer.open(function (added, removed, changed, getOldValueFn) {
+            // update hash when bound values change
+            current.observer.open(function (newValues, oldValues) {              
+              
+              for (var i in oldValues) {
 
-              Object.keys(changed).forEach(function (property) {
-                //console.log("changed " + property + ": " + getOldValueFn(property) + " > " + changed[property]);
+                //console.log('The ' + i + 'th value: ' + current.boundVars[i] + ' changed from: ' + oldValues[i] + ' to: ' + newValues[i]);
 
-                if (current.boundVars.indexOf(property) >= 0) {
-                  var vold = vs.args[property];
-                  var vnew = changed[property];
+                var property = current.boundVars[i];
+                var vold = vs.args[property];
+                var vnew = newValues[i];
 
-                  // parameter value changed -> update hash
-                  if (vold == undefined || vnew != vold) {
-                    vs.args[property] = changed[property];
+                // parameter value changed -> update hash
+                if (vold == undefined || vnew != vold) {
+                  vs.args[property] = vnew;
 
-                    // get new normalized hash
-                    var state = encodeViewState(vs);
-                    window.location.hash = "#!" + state;
+                  // get new normalized hash
+                  var state = encodeViewState(vs);
+                  window.location.hash = "#!" + state;
 
-                    // save new hash to navigation stack
-                    stateHistory.push(state);
+                  // save new hash to navigation stack
+                  stateHistory.push(state);
 
-                    // save current viewState
-                    current.viewState = vs;
-                  }
+                  // save current viewState
+                  current.viewState = vs;
                 }
-              });
+              }
             });
+
+
 
             // save reference to now bound element
             e.detail.boundElement = newElem;
