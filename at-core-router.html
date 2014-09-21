@@ -2,7 +2,7 @@
 <polymer-element name="at-core-router">
   <template>
     <style>
-      #main {
+      #content {
         overflow-x: hidden;
         left: 0;
       }
@@ -55,7 +55,7 @@
       }
     </style>
 
-    <div id="main"></div>
+    <div id="content"></div>
   </template>
   <script>
     (function () {
@@ -66,7 +66,7 @@
         //stateManager: null,   // reference to 'this'
         appFrame: null,         // frame / scaffold element
         viewState: null,        // active state
-        boundElement: null,     // current active main element, bound to viewState args
+        boundElement: null,     // current active content element, bound to viewState args
         boundVars: null,        // collection of names for bound variables of current component
         direction: "none",      // forward, back, none  for view transition
         observer: null          // object observer for view arg changes
@@ -153,6 +153,11 @@
           defaultView: "home",
           caption: "",
           enableBack: false
+        },
+        captionChanged: function(ov,nv) {
+
+          document.title = nv;
+
         },
         open: function (view) {
 
@@ -261,7 +266,7 @@
 
               // remove previous view when animation is finished
               currentView.addEventListener(TransitionEndEventName(), function (e) {
-                appFrame.$.main.removeChild(e.target);
+                appFrame.$.content.removeChild(e.target);
               });
 
             } else {
@@ -272,30 +277,30 @@
 
             // remove hidden views which didn't trigger TransitionEndEvent
             //     because of user interaction was faster then animation time
-            var hidden = appFrame.$.main.getElementsByClassName("hiddenview");
+            var hidden = appFrame.$.content.getElementsByClassName("hiddenview");
             for (var i = 0; i < hidden.length; i++) {
-              appFrame.$.main.removeChild(hidden[i]);
+              appFrame.$.content.removeChild(hidden[i]);
             }
 
             // add view to appFrame
-            if (appFrame.$.main.firstChild) {
-              appFrame.$.main.insertBefore(newElem, appFrame.$.main.firstChild);
+            if (appFrame.$.content.firstChild) {
+              appFrame.$.content.insertBefore(newElem, appFrame.$.content.firstChild);
             } else {
-              appFrame.$.main.appendChild(newElem);
+              appFrame.$.content.appendChild(newElem);
             }
 
 
             // scroll to top - Chrome & Android require workaround or scrollTop fails
             var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
 
-            if (androidFixRequired) appFrame.$.main.classList.add("androidFix");
-            appFrame.$.main.scrollTop = 0;
-            if (androidFixRequired) appFrame.$.main.classList.remove("androidFix");
+            if (androidFixRequired) appFrame.$.content.classList.add("androidFix");
+            appFrame.$.content.scrollTop = 0;
+            if (androidFixRequired) appFrame.$.content.classList.remove("androidFix");
 
 
             // Force reflow to make sure the style changes
             // are applied before rendering the element
-            appFrame.$.main.offsetWidth;
+            appFrame.$.content.offsetWidth;
 
 
             // Position the new page and the current page at the ending position of their animation
