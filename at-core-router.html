@@ -24,28 +24,28 @@
         will-change: transform;
       }
 
-        .view.back {
-          -webkit-transform: translate3d(-100%, 0, 0);
-          transform: translate3d(-100%, 0, 0);
-          will-change: transform;
-        }
+      .view.back {
+        -webkit-transform: translate3d(-100%, 0, 0);
+        transform: translate3d(-100%, 0, 0);
+        will-change: transform;
+      }
 
-        .view.center {
-          -webkit-transform: translate3d(0, 0, 0);
-          transform: translate3d(0, 0, 0);
-          will-change: transform;
-        }
+      .view.center {
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+        will-change: transform;
+      }
 
-        .view.forward {
-          -webkit-transform: translate3d(100%, 0, 0);
-          transform: translate3d(100%, 0, 0);
-          will-change: transform;
-        }
+      .view.forward {
+        -webkit-transform: translate3d(100%, 0, 0);
+        transform: translate3d(100%, 0, 0);
+        will-change: transform;
+      }
 
-        .view.transition {
-          -webkit-transition-duration: .5s;
-          transition-duration: .5s;
-        }
+      .view.transition {
+        -webkit-transition-duration: .5s;
+        transition-duration: .5s;
+      }
 
       .androidFix {
         overflow: hidden !important;
@@ -150,11 +150,11 @@
           this.context = current;
         },
         publish: {
-          defaultView: "home",
+          defaultView: "at-app/at-home",
           caption: "",
           enableBack: false
         },
-        captionChanged: function(ov,nv) {
+        captionChanged: function (ov, nv) {
 
           document.title = nv;
 
@@ -163,6 +163,8 @@
 
           // close side panel before navigating
           current.appFrame.parentElement.$.drawerPanel.closeDrawer();
+
+          if (!view) { view = this.defaultView; }
 
           view = "#!" + view;
           window.location.hash = view;
@@ -216,15 +218,15 @@
 
               for (var i in boundvars) {
                 var vname = boundvars[i];
-                var vval = vs.args[vname];                
+                var vval = vs.args[vname];
                 if (vval != undefined) newElem[vname] = vval;
                 current.observer.addPath(newElem, vname);
               }
             }
 
             // update hash when bound values change
-            current.observer.open(function (newValues, oldValues) {              
-              
+            current.observer.open(function (newValues, oldValues) {
+
               for (var i in oldValues) {
 
                 //console.log('The ' + i + 'th value: ' + current.boundVars[i] + ' changed from: ' + oldValues[i] + ' to: ' + newValues[i]);
@@ -403,7 +405,7 @@
           // fire view-changed to load initial view
           fireEvent("view-changed", vs);
         },
-        navigateTo: function(e) {
+        navigateTo: function (e) {
 
           var view = e.detail;
 
