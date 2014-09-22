@@ -403,10 +403,24 @@
           // fire view-changed to load initial view
           fireEvent("view-changed", vs);
         },
+        navigateTo: function(e) {
+
+          var view = e.detail;
+
+          if (view.indexOf("#!") == 0) {
+            view = view.substring(2);
+          }
+
+          if (view.indexOf("#") == 0) {
+            view = view.substring(1);
+          }
+          this.open(view);
+        },
         ready: function () {
 
           document.addEventListener('view-changed', this.viewChanged, false);
           document.addEventListener('view-args-changed', this.viewArgsChanged, false);
+          document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
 
           this.start(this);
         }
