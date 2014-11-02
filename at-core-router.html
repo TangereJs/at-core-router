@@ -9,7 +9,7 @@
         overflow-x: hidden;
       }
 
-      #content {        
+      #content {
         left: 0;
         height: 100%;
       }
@@ -271,7 +271,9 @@
 
               // remove previous view when animation is finished
               currentView.addEventListener(TransitionEndEventName(), function (e) {
-                appFrame.$.content.removeChild(e.target);
+                var ctr = appFrame.$.content.removeChild(e.target);
+                ctr = null;
+                delete ctr;
               });
 
             } else {
@@ -283,8 +285,10 @@
             // remove hidden views which didn't trigger TransitionEndEvent
             //     because of user interaction was faster then animation time
             var hidden = appFrame.$.content.getElementsByClassName("hiddenview");
-            for (var i = 0; i < hidden.length; i++) {
-              appFrame.$.content.removeChild(hidden[i]);
+            for (var i = 0; i < hidden.length; i++) {              
+              var ctr = appFrame.$.content.removeChild(hidden[i]);
+              ctr = null;
+              delete ctr;
             }
 
             // add view to appFrame
@@ -311,8 +315,15 @@
             // Position the new page and the current page at the ending position of their animation
             // with a transition class indicating the duration of the animation
             if (currentView) {
+
+              // notify currentView about unload
+              if (typeof currentView.viewBeforeUnload == "function") {
+                currentView.viewBeforeUnload(e.detail);
+              }
+
               newView.className = "view transition center";
               currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+
             } else {
               // initial view shows without transistion
               newView.className = "view center";
