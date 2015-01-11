@@ -5,7 +5,7 @@
       :host {
         width: 100%;
         display: block;
-        overflow-y: scroll;
+        overflow-y: auto;
         overflow-x: hidden;
       }
 
@@ -283,8 +283,8 @@
 
             // remove hidden views which didn't trigger TransitionEndEvent
             //     because of user interaction was faster then animation time
-            var hidden = appFrame.$.content.getElementsByClassName("hiddenview");
-            for (var i = 0; i < hidden.length; i++) {              
+            var hidden = appFrame.$.content.getElementsByClassName("hiddenview");            
+            for (var i = 0; i < hidden.length; i++) {                                       
               var ctr = appFrame.$.content.removeChild(hidden[i]);
               ctr = null;
               delete ctr;
@@ -322,10 +322,12 @@
 
               newView.className = "view transition center";
               currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+              //console.log("router animate " + trans);
 
             } else {
               // initial view shows without transistion
               newView.className = "view center";
+              //console.log("router no animation");
             }
 
             // call viewReady of new view element
