@@ -10,7 +10,7 @@
       }
 
       #content {
-        left: 0;        
+        left: 0;
       }
 
       .view {
@@ -193,6 +193,7 @@
           e.detail.appFrame.enableBack = stateHistory.length > 1;
 
           var compUrl = document.URL.indexOf("/components/") >= 0 ? "../" : "components/";
+          if (window.ComponentsBase != undefined) compUrl = window.ComponentsBase;
 
           var imports = [];
           // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
@@ -283,8 +284,8 @@
 
             // remove hidden views which didn't trigger TransitionEndEvent
             //     because of user interaction was faster then animation time
-            var hidden = appFrame.$.content.getElementsByClassName("hiddenview");            
-            for (var i = 0; i < hidden.length; i++) {                                       
+            var hidden = appFrame.$.content.getElementsByClassName("hiddenview");
+            for (var i = 0; i < hidden.length; i++) {
               var ctr = appFrame.$.content.removeChild(hidden[i]);
               ctr = null;
               delete ctr;
