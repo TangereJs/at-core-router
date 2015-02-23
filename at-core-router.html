@@ -126,13 +126,13 @@
       function encodeViewState(vs) {
         var r = "";
         var args = Object.getOwnPropertyNames(vs.args).sort();
-        for (var i in args) {
+        for (var i = 0; i < args.length; i++) {
           var argv = vs.args[args[i]];
           r += (r > "" ? "&" : "") + args[i] + (argv != "" ? "=" + encodeURIComponent(argv) : "");
         }
 
         r = vs.view + (r > "" ? "?" + r : "");
-
+        //console.log("vs:" + r);
         return r;
       }
 
@@ -220,10 +220,12 @@
               current.boundVars = boundvars;
 
               for (var i in boundvars) {
-                var vname = boundvars[i];
-                var vval = vs.args[vname];
-                if (vval != undefined) newElem[vname] = vval;
-                current.observer.addPath(newElem, vname);
+                if (boundvars.hasOwnProperty(i)) {
+                  var vname = boundvars[i];
+                  var vval = vs.args[vname];
+                  if (vval != undefined) newElem[vname] = vval;
+                  current.observer.addPath(newElem, vname);
+                }
               }
             }
 
@@ -231,26 +233,29 @@
             current.observer.open(function (newValues, oldValues) {
 
               for (var i in oldValues) {
+                if (oldValues.hasOwnProperty(i)) {
+                  //console.log(i + '. value: ' + current.boundVars[i] + ' changed from: ' + oldValues[i] + ' to: ' + newValues[i]);
 
-                //console.log('The ' + i + 'th value: ' + current.boundVars[i] + ' changed from: ' + oldValues[i] + ' to: ' + newValues[i]);
+                  var property = current.boundVars[i];
+                  var vold = vs.args[property];
+                  var vnew = newValues[i];
 
-                var property = current.boundVars[i];
-                var vold = vs.args[property];
-                var vnew = newValues[i];
+                  //console.log("property:" + property + ", vold:" + vold + ", vnew:" + vnew);
 
-                // parameter value changed -> update hash
-                if (vold == undefined || vnew != vold) {
-                  vs.args[property] = vnew;
+                  // parameter value changed -> update hash
+                  if (vold == undefined || vnew != vold) {
+                    vs.args[property] = vnew;
 
-                  // get new normalized hash
-                  var state = encodeViewState(vs);
-                  window.location.hash = "#!" + state;
+                    // get new normalized hash
+                    var state = encodeViewState(vs);
+                    window.location.hash = "#!" + state;
 
-                  // save new hash to navigation stack
-                  stateHistory.push(state);
+                    // save new hash to navigation stack
+                    stateHistory.push(state);
 
-                  // save current viewState
-                  current.viewState = vs;
+                    // save current viewState
+                    current.viewState = vs;
+                  }
                 }
               }
             });
