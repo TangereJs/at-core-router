@@ -430,6 +430,12 @@
 
           var view = e.detail;
 
+          // navigate to external url
+          if (view.indexOf("://") > 0) {
+            location.replace(view);
+            return;
+          }
+
           if (view.indexOf("#!") == 0) {
             view = view.substring(2);
           }
