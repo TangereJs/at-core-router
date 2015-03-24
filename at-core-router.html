@@ -1,7 +1,9 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer-import/polymer-import.html">
 
-<polymer-element name="at-core-router">
-  <template>
-    <style>
+<dom-module id="at-core-router">
+  
+      <style>
       :host {
         width: 100%;
         display: block;
@@ -56,9 +58,12 @@
         display: none;
       }
     </style>
-
+  
+  <template>
     <div id="content"></div>
   </template>
+</dom-module>
+
   <script>
     (function () {
 
@@ -147,14 +152,15 @@
       }
 
 
-      Polymer('at-core-router', {
+      Polymer({ 
+        is:'at-core-router', 
         ready: function () {
           this.context = current;
         },
-        publish: {
-          defaultView: "at-app/at-home",
-          caption: "",
-          enableBack: false
+        properties: {
+          defaultView: { type: String, value:"at-app/at-home" },
+          caption: { type: String, value: "" },
+          enableBack: { type: Boolean, value: false }
         },
         captionChanged: function (ov, nv) {
 
@@ -171,12 +177,17 @@
           view = "#!" + view;
           window.location.hash = view;
         },
+        
         viewChanged: function (e) {
+          
+            debugger;
 
           var appFrame = e.detail.appFrame;
           var vs = e.detail.viewState;
           var viewName = vs.view;
 
+        
+          
           // use default view name?
           if (viewName == "") viewName = e.detail.appFrame.defaultView;
 
@@ -205,7 +216,7 @@
             var trans = e.detail.direction;
 
             // todo: improve handle/detect error
-            if (typeof newElem.publish == "undefined") {
+            if (typeof newElem.properties == "undefined") {
               alert("View " + elementName + " not found");
               return;
             }
@@ -213,6 +224,8 @@
             var newView = newElem;
             var currentView = e.detail.boundElement;
 
+            /** todo: update binding 
+            
             // load initial values and bind them
             current.observer = new CompoundObserver();
             if (typeof newElem.publish != "undefined") {
@@ -259,14 +272,11 @@
                 }
               }
             });
-
+            *********/  
 
 
             // save reference to now bound element
             e.detail.boundElement = newElem;
-
-            // force immediate binding refresh for polyfill
-            Platform.flush();
 
             // position views
             if (currentView) {
@@ -401,6 +411,8 @@
 
         start: function (appFrame) {
 
+          debugger;
+          
           // save atApp reference
           current.appFrame = appFrame;
 
@@ -458,4 +470,4 @@
       });
     })();
   </script>
-</polymer-element>
+
