@@ -276,7 +276,6 @@
             }
           }
 
-
           // save reference to now bound element
           e.detail.boundElement = newElem;
 
@@ -288,7 +287,7 @@
 
             // remove previous view when animation is finished
             currentView.addEventListener(TransitionEndEventName(), function (e) {
-              var ctr = appFrame.$.content.removeChild(e.target);
+              var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
               delete ctr;
             });
@@ -300,35 +299,38 @@
           }
 
           // remove hidden views which didn't trigger TransitionEndEvent
-          //     because of user interaction was faster then animation time
-          var hidden = appFrame.$.content.getElementsByClassName("hiddenview");
-          for (var i = 0; i < hidden.length; i++) {
-            var ctr = appFrame.$.content.removeChild(hidden[i]);
-            ctr = null;
-            delete ctr;
-          }
+          //     because of user interaction was faster then animation time       
+          var hidden = Polymer.dom(appFrame.$.content).querySelectorAll(".hiddenview");
+
+            for (var i = 0; i < hidden.length; i++) {
+              var ctr = Polymer.dom(appFrame.$.content).removeChild(hidden[i]);
+              ctr = null;
+              delete ctr;
+            }
+
+          var parent = appFrame.$.content;
+          var childs = Polymer.dom(parent).childNodes;
 
           // add view to appFrame
-          if (appFrame.$.content.firstChild) {
-            appFrame.$.content.insertBefore(newElem, appFrame.$.content.firstChild);
+          if (childs.length > 0) {
+            Polymer.dom(parent).insertBefore(newElem, childs[0]);
           } else {
-            appFrame.$.content.appendChild(newElem);
+            Polymer.dom(parent).appendChild(newElem);
           }
 
 
           // scroll to top - Chrome & Android require workaround or scrollTop fails
           var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
 
-          if (androidFixRequired) appFrame.$.content.classList.add("androidFix");
-          appFrame.$.content.scrollTop = 0;
-          if (androidFixRequired) appFrame.$.content.classList.remove("androidFix");
+          if (androidFixRequired) parent.classList.add("androidFix");
+          parent.scrollTop = 0;
+          if (androidFixRequired) parent.classList.remove("androidFix");
 
 
           // Force reflow to make sure the style changes
           // are applied before rendering the element
-          appFrame.$.content.offsetWidth;
-
-
+          parent.offsetWidth;
+          
           // Position the new page and the current page at the ending position of their animation
           // with a transition class indicating the duration of the animation
           if (currentView) {
@@ -338,14 +340,15 @@
               currentView.viewBeforeUnload(e.detail);
             }
 
+            debugger;
             newView.className = "view transition center";
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
-            //console.log("router animate " + trans);
+            console.log("router animate " + trans);            
 
           } else {
             // initial view shows without transistion
             newView.className = "view center";
-            //console.log("router no animation");
+            console.log("router no animation");
           }
 
           // call viewReady of new view element
@@ -355,7 +358,7 @@
         })
 
       },
-      
+
       viewArgsChanged: function (e) {
         var vs = e.detail.viewState;
         var elem = e.detail.boundElement;
@@ -365,7 +368,7 @@
         for (var i in boundvars) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
-          elem[vname] = (vval == undefined ? "" : vval);          
+          elem[vname] = (vval == undefined ? "" : vval);
         }
       },
 
