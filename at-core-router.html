@@ -16,7 +16,7 @@
     .view {
       box-sizing: border-box;
       display: block;
-      position: relative;
+      position: absolute;
       background-color: transparent;
       min-width: 100%;
       min-height: 100%;
@@ -41,8 +41,8 @@
       will-change: transform;
     }
     .view.transition {
-      -webkit-transition-duration: .5s;
-      transition-duration: .5s;
+      -webkit-transition-duration: 5s;
+      transition-duration: 5s;      
     }
     .androidFix {
       overflow: hidden !important;
@@ -223,7 +223,6 @@
         var viewName = vs.view;
 
 
-
         // use default view name?
         if (viewName == "") viewName = e.detail.appFrame.defaultView;
 
@@ -302,11 +301,11 @@
           //     because of user interaction was faster then animation time       
           var hidden = Polymer.dom(appFrame.$.content).querySelectorAll(".hiddenview");
 
-            for (var i = 0; i < hidden.length; i++) {
-              var ctr = Polymer.dom(appFrame.$.content).removeChild(hidden[i]);
-              ctr = null;
-              delete ctr;
-            }
+          for (var i = 0; i < hidden.length; i++) {
+            var ctr = Polymer.dom(appFrame.$.content).removeChild(hidden[i]);
+            ctr = null;
+            delete ctr;
+          }
 
           var parent = appFrame.$.content;
           var childs = Polymer.dom(parent).childNodes;
@@ -321,16 +320,17 @@
 
           // scroll to top - Chrome & Android require workaround or scrollTop fails
           var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
-
+androidFixRequired=false;
           if (androidFixRequired) parent.classList.add("androidFix");
           parent.scrollTop = 0;
           if (androidFixRequired) parent.classList.remove("androidFix");
 
-
+debugger;
           // Force reflow to make sure the style changes
           // are applied before rendering the element
+          Polymer.dom.flush();
           parent.offsetWidth;
-          
+
           // Position the new page and the current page at the ending position of their animation
           // with a transition class indicating the duration of the animation
           if (currentView) {
@@ -343,7 +343,7 @@
             debugger;
             newView.className = "view transition center";
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
-            console.log("router animate " + trans);            
+            console.log("router animate " + trans);
 
           } else {
             // initial view shows without transistion
