@@ -20,23 +20,23 @@
       min-height: 100%;
       margin: 0;
       left: 0;
-      will-change: transform;
+      will-change: left;
     }
     .view.back {
       left: -100%;
-      will-change: transform;
+      will-change: left;
     }
     .view.center {
       left: 0;
-      will-change: transform;
+      will-change: left;
     }
     .view.forward {
       left: 100%;
-      will-change: transform;
+      will-change: left;
     }
     .view.transition {
-      -webkit-transition-duration: 1s;
-      transition-duration: 1s;
+        transition: all 0.3s ease-in-out;
+        -webkit-transition: all 0.3s ease-in-out;
     }
     .androidFix {
       overflow: hidden !important;
