@@ -8,8 +8,8 @@
       width: 100%;
       display: block;
     }
-    #content {      
-       position: relative;
+    #content {
+      position: relative;
     }
     .view {
       box-sizing: border-box;
@@ -19,24 +19,24 @@
       min-width: 100%;
       min-height: 100%;
       margin: 0;
-left:0;
+      left: 0;
       will-change: transform;
     }
     .view.back {
-left:-100%;
+      left: -100%;
       will-change: transform;
     }
     .view.center {
-left:0;
+      left: 0;
       will-change: transform;
     }
     .view.forward {
-left:100%;
+      left: 100%;
       will-change: transform;
     }
     .view.transition {
       -webkit-transition-duration: 1s;
-      transition-duration: 1s;      
+      transition-duration: 1s;
     }
     .androidFix {
       overflow: hidden !important;
@@ -210,12 +210,124 @@ left:100%;
           }
         }
       },
-      viewChanged: function (e) {
+
+      viewShow: function (e, elementName) {
 
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
         var viewName = vs.view;
 
+        var newElem = document.createElement(elementName);
+        var trans = e.detail.direction;
+
+        // todo: improve handle/detect error
+        if (typeof newElem.properties == "undefined") {
+          alert("View " + elementName + " not found");
+          return;
+        }
+
+        var newView = newElem;
+        var currentView = e.detail.boundElement;
+
+        // load initial values and bind them          
+        if (typeof newElem.properties != "undefined") {
+          var boundvars = Object.getOwnPropertyNames(newElem.properties);
+
+          current.boundVars = boundvars;
+
+          for (var i in boundvars) {
+            if (boundvars.hasOwnProperty(i)) {
+              var vname = boundvars[i];
+              var vval = vs.args[vname];
+              if (vval != undefined) newElem[vname] = vval;
+              newElem.addEventListener(vname + '-changed', e.detail.appFrame.viewChangedArg.bind(e.detail.appFrame), false);
+            }
+          }
+        }
+
+        // save reference to now bound element
+        e.detail.boundElement = newElem;
+
+        // position views
+        if (currentView) {
+
+          newView.className = "view " + trans;
+          currentView.className = "view center";
+
+          // remove previous view when animation is finished
+          currentView.addEventListener(TransitionEndEventName(), function (e) {
+            var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
+            ctr = null;
+            delete ctr;
+          });
+
+        } else {
+
+          newView.className = "view center";
+
+        }
+
+        // remove hidden views which didn't trigger TransitionEndEvent
+        //     because of user interaction was faster then animation time       
+        var hidden = Polymer.dom(appFrame.$.content).querySelectorAll(".hiddenview");
+
+        for (var i = 0; i < hidden.length; i++) {
+          var ctr = Polymer.dom(appFrame.$.content).removeChild(hidden[i]);
+          ctr = null;
+          delete ctr;
+        }
+
+        var parent = appFrame.$.content;
+        Polymer.dom(parent).appendChild(newElem);
+
+        // Force reflow to make sure the style changes
+        // are applied before rendering the element
+        Polymer.dom.flush();
+        document.body.offsetWidth;
+
+
+        // scroll to top - Chrome & Android require workaround or scrollTop fails
+        var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
+        androidFixRequired = false;
+        if (androidFixRequired) parent.classList.add("androidFix");
+        //parent.scrollTop = 0;
+        if (androidFixRequired) parent.classList.remove("androidFix");
+
+        document.body.scrollTop = 0;
+
+
+        // Position the new page and the current page at the ending position of their animation
+        // with a transition class indicating the duration of the animation
+        if (currentView) {
+
+          // notify currentView about unload
+          if (typeof currentView.viewBeforeUnload == "function") {
+            currentView.viewBeforeUnload(e.detail);
+          }
+
+          newView.className = "view transition center";
+          currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+          //console.log("router animate " + trans);
+
+        } else {
+          // initial view shows without transistion
+          newView.className = "view center";
+          //console.log("router no animation");
+        }
+
+        // call viewReady of new view element
+        if (typeof newElem.viewReady == "function") {
+          newElem.viewReady(e.detail);
+        }
+
+
+      },
+
+      viewChanged: function (e) {
+
+        var appFrame = e.detail.appFrame;
+        var vs = e.detail.viewState;
+        var viewName = vs.view;
 
         // use default view name?
         if (viewName == "") viewName = e.detail.appFrame.defaultView;
@@ -239,124 +351,15 @@ left:100%;
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
         imports.push(viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html");
 
-        Polymer.import(imports, function () {
-
-          var newElem = document.createElement(elementName);
-          var trans = e.detail.direction;
-          trans = "forward";
-          
-          // todo: improve handle/detect error
-          if (typeof newElem.properties == "undefined") {
-            alert("View " + elementName + " not found");
-            return;
-          }
-          
-          var newView = newElem;
-          var currentView = e.detail.boundElement;
-
-          // load initial values and bind them          
-          if (typeof newElem.properties != "undefined") {
-            var boundvars = Object.getOwnPropertyNames(newElem.properties);
-
-            current.boundVars = boundvars;
-
-            for (var i in boundvars) {
-              if (boundvars.hasOwnProperty(i)) {
-                var vname = boundvars[i];
-                var vval = vs.args[vname];
-                if (vval != undefined) newElem[vname] = vval;
-                newElem.addEventListener(vname + '-changed', e.detail.appFrame.viewChangedArg.bind(e.detail.appFrame), false);
-              }
-            }
-          }
-
-          // save reference to now bound element
-          e.detail.boundElement = newElem;
-
-          // position views
-          if (currentView) {
-
-            newView.className = "view " + trans;
-            currentView.className = "view center";
-
-            // remove previous view when animation is finished
-            currentView.addEventListener(TransitionEndEventName(), function (e) {
-              var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
-              ctr = null;
-              delete ctr;
-            });
-
-          } else {
-
-            newView.className = "view center";
-
-          }
-
-          // remove hidden views which didn't trigger TransitionEndEvent
-          //     because of user interaction was faster then animation time       
-          var hidden = Polymer.dom(appFrame.$.content).querySelectorAll(".hiddenview");
-
-          for (var i = 0; i < hidden.length; i++) {
-            var ctr = Polymer.dom(appFrame.$.content).removeChild(hidden[i]);
-            ctr = null;
-            delete ctr;
-          }
-
-          var parent = appFrame.$.content;
-          var childs = Polymer.dom(parent).childNodes;
-
-          // add view to appFrame
-          if (childs.length > 0) {
-            Polymer.dom(parent).insertBefore(newElem, childs[0]);
-          } else {
-            Polymer.dom(parent).appendChild(newElem);
-          }
-
-          // Force reflow to make sure the style changes
-          // are applied before rendering the element
-          Polymer.dom.flush();
-          document.body.offsetWidth;
-
-          
-          // scroll to top - Chrome & Android require workaround or scrollTop fails
-          var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
-androidFixRequired=false;
-          if (androidFixRequired) parent.classList.add("androidFix");
-          //parent.scrollTop = 0;
-          if (androidFixRequired) parent.classList.remove("androidFix");
-
-          document.body.scrollTop=0;          
-          
-
-          // Position the new page and the current page at the ending position of their animation
-          // with a transition class indicating the duration of the animation
-          if (currentView) {
-
-            // notify currentView about unload
-            if (typeof currentView.viewBeforeUnload == "function") {
-              currentView.viewBeforeUnload(e.detail);
-            }
-
-            console.log("cv left " + currentView.getBoundingClientRect().left);
-            console.log("nv left " + newView.getBoundingClientRect().left);
-            console.log("nv width " + newView.getBoundingClientRect().width);
-            currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
-            newView.className = "view transition center";
-            
-            console.log("router animate " + trans);
-
-          } else {
-            // initial view shows without transistion
-            newView.className = "view center";
-            console.log("router no animation");
-          }
-
-          // call viewReady of new view element
-          if (typeof newElem.viewReady == "function") {
-            newElem.viewReady(e.detail);
-          }
-        })
-
+        // import elementName if not yet imported
+        var isImported = Polymer.import.isImported(elementName);
+        if (!isImported) {
+          Polymer.import(imports, function () {
+            e.detail.appFrame.viewShow(e, elementName);
+          });
+        } else {
+          e.detail.appFrame.viewShow(e, elementName);
+        }
       },
 
       viewArgsChanged: function (e) {
