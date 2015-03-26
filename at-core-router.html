@@ -7,11 +7,9 @@
     :host {
       width: 100%;
       display: block;
-      overflow-y: auto;
-      overflow-x: hidden;
     }
-    #content {
-      left: 0;
+    #content {      
+       position: relative;
     }
     .view {
       box-sizing: border-box;
@@ -21,28 +19,24 @@
       min-width: 100%;
       min-height: 100%;
       margin: 0;
-      -webkit-transform: translate3d(0, 0, 0);
-      transform: translate3d(0, 0, 0);
+left:0;
       will-change: transform;
     }
     .view.back {
-      -webkit-transform: translate3d(-100%, 0, 0);
-      transform: translate3d(-100%, 0, 0);
+left:-100%;
       will-change: transform;
     }
     .view.center {
-      -webkit-transform: translate3d(0, 0, 0);
-      transform: translate3d(0, 0, 0);
+left:0;
       will-change: transform;
     }
     .view.forward {
-      -webkit-transform: translate3d(100%, 0, 0);
-      transform: translate3d(100%, 0, 0);
+left:100%;
       will-change: transform;
     }
     .view.transition {
-      -webkit-transition-duration: 5s;
-      transition-duration: 5s;      
+      -webkit-transition-duration: 1s;
+      transition-duration: 1s;      
     }
     .androidFix {
       overflow: hidden !important;
@@ -249,13 +243,14 @@
 
           var newElem = document.createElement(elementName);
           var trans = e.detail.direction;
-
+          trans = "forward";
+          
           // todo: improve handle/detect error
           if (typeof newElem.properties == "undefined") {
             alert("View " + elementName + " not found");
             return;
           }
-
+          
           var newView = newElem;
           var currentView = e.detail.boundElement;
 
@@ -317,19 +312,21 @@
             Polymer.dom(parent).appendChild(newElem);
           }
 
+          // Force reflow to make sure the style changes
+          // are applied before rendering the element
+          Polymer.dom.flush();
+          document.body.offsetWidth;
 
+          
           // scroll to top - Chrome & Android require workaround or scrollTop fails
           var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
 androidFixRequired=false;
           if (androidFixRequired) parent.classList.add("androidFix");
-          parent.scrollTop = 0;
+          //parent.scrollTop = 0;
           if (androidFixRequired) parent.classList.remove("androidFix");
 
-debugger;
-          // Force reflow to make sure the style changes
-          // are applied before rendering the element
-          Polymer.dom.flush();
-          parent.offsetWidth;
+          document.body.scrollTop=0;          
+          
 
           // Position the new page and the current page at the ending position of their animation
           // with a transition class indicating the duration of the animation
@@ -340,9 +337,12 @@ debugger;
               currentView.viewBeforeUnload(e.detail);
             }
 
-            debugger;
-            newView.className = "view transition center";
+            console.log("cv left " + currentView.getBoundingClientRect().left);
+            console.log("nv left " + newView.getBoundingClientRect().left);
+            console.log("nv width " + newView.getBoundingClientRect().width);
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+            newView.className = "view transition center";
+            
             console.log("router animate " + trans);
 
           } else {
