@@ -350,6 +350,8 @@
 
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
         var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
+        
+        e.detail.appFrame.fire("router-navigate");
 
         // import elementName 
         e.detail.appFrame.importHref(importPath, function () {
@@ -374,7 +376,7 @@
 
         var newVs = getViewStateFromHash();
 
-        // ignore if we state didn't really change
+        // ignore if view state didn't really change
         if (encodeViewState(current.viewState) == encodeViewState(newVs)) return;
 
         // update nav history, detect direction
