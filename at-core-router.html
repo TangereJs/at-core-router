@@ -255,8 +255,7 @@
           currentView.className = "view center";
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {
-            debugger;
+          currentView.addEventListener(TransitionEndEventName(), function (e) {            
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -301,7 +300,6 @@
 
         document.body.scrollTop = 0;
 
-        debugger;
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
         if (currentView) {
