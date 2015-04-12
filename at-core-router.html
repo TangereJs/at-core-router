@@ -142,6 +142,7 @@
 
     Polymer({
       is: 'at-core-router',
+      _scopeCssViaAttr: true,
       properties: {
         defaultView: {
           type: String,
@@ -255,6 +256,7 @@
 
           // remove previous view when animation is finished
           currentView.addEventListener(TransitionEndEventName(), function (e) {
+            debugger;
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -281,6 +283,9 @@
         var parent = appFrame.$.content;
         Polymer.dom(parent).appendChild(newElem);
 
+        // transform ShadyDom styles of innerHTML
+        if (!Polymer.Settings.useShadow) Polymer.StyleTransformer.dom(parent, this.is, true);
+
         // Force reflow to make sure the style changes
         // are applied before rendering the element
         Polymer.dom.flush();
@@ -296,7 +301,7 @@
 
         document.body.scrollTop = 0;
 
-
+        debugger;
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
         if (currentView) {
@@ -350,7 +355,7 @@
 
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
         var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
-        
+
         e.detail.appFrame.fire("router-navigate");
 
         // import elementName 
