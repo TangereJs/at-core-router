@@ -1,4 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../at-core-signals/at-core-signals.html">
+
 
 <dom-module id="at-core-router">
 
@@ -46,6 +48,7 @@
   </style>
 
   <template>
+    <at-core-signals on-navigate-to="navigateTo"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
@@ -255,7 +258,7 @@
           currentView.className = "view center";
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {            
+          currentView.addEventListener(TransitionEndEventName(), function (e) {
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -445,7 +448,7 @@
         var view = e.detail;
 
         // navigate to external url
-        if (view.indexOf("://") > 0) {
+        if (view.indexOf("://") > 0 || view.indexOf("/") == 0) {
           location.replace(view);
           return;
         }
