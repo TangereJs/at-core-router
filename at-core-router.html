@@ -153,7 +153,8 @@
         },
         caption: {
           type: String,
-          value: ""
+          value: "",
+          observer: "captionChanged"
         },
         enableBack: {
           type: Boolean,
@@ -164,10 +165,9 @@
           value: null
         }
       },
-      captionChanged: function (ov, nv) {
-
-        document.title = nv;
-
+      captionChanged: function (value, old) {
+        document.title = value;
+        Polymer.signal("app-caption", value);
       },
       open: function (view) {
 
@@ -235,6 +235,10 @@
         // load initial values and bind them          
         if (typeof newElem.properties != "undefined") {
           var boundvars = Object.getOwnPropertyNames(newElem.properties);
+          
+          if (newElem.caption) {
+            this.caption = newElem.caption;
+          }
 
           current.boundVars = boundvars;
 
@@ -342,22 +346,17 @@
         // add default prefix if no prefix is provided
         if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
 
-        //// repeat folder name if no file name is provided
-        //if (viewName.indexOf("/") < 0) viewName = viewName + "/" + viewName;
-
         // get element name
         var elementName = viewName.substring(viewName.indexOf("/") + 1);
 
         // update back button status
-        e.detail.appFrame.enableBack = stateHistory.length > 1;
+        Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
         var compUrl = document.URL.indexOf("/components/") >= 0 ? "../" : "components/";
         if (window.ComponentsBase != undefined) compUrl = window.ComponentsBase;
 
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
-        var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
-
-        e.detail.appFrame.fire("router-navigate");
+        var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";               
 
         // import elementName 
         e.detail.appFrame.importHref(importPath, function () {
