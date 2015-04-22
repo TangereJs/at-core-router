@@ -171,12 +171,12 @@
       },
       open: function (view) {
 
-        // close side panel before navigating
-        current.appFrame.parentElement.$.drawerPanel.closeDrawer();
-
         if (!view) {
           view = this.defaultView;
         }
+
+        // signal to close side panel before navigating
+        Polymer.signal("before-navigate", view);
 
         view = "#!" + view;
         window.location.hash = view;
@@ -258,7 +258,7 @@
           currentView.className = "view center";
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {
+          currentView.addEventListener(TransitionEndEventName(), function (e) {            
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -448,7 +448,7 @@
         var view = e.detail;
 
         // navigate to external url
-        if (view.indexOf("://") > 0 || view.indexOf("/") == 0) {
+        if (view.indexOf("://") > 0 || view.indexOf("/")==0) {
           location.replace(view);
           return;
         }
