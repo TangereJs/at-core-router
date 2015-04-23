@@ -48,7 +48,7 @@
   </style>
 
   <template>
-    <at-core-signals on-navigate-to="navigateTo"></at-core-signals>
+    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
@@ -415,10 +415,10 @@
         fireEvent(eventName, newVs);
       },
 
-      start: function (appFrame) {
+      start: function () {
 
         // save atApp reference
-        current.appFrame = appFrame;
+        current.appFrame = this;
 
         // get initial viewState
         var vs = getViewStateFromHash();
@@ -469,7 +469,8 @@
         document.addEventListener('view-args-changed', this.viewArgsChanged, false);
         document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
 
-        this.start(this);
+        //-- now started with session-ready signal
+        //--this.start(this);
       }
 
 
