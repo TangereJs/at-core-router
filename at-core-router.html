@@ -264,7 +264,7 @@
 
           // remove previous view when animation is finished
           currentView.addEventListener(TransitionEndEventName(), function (e) {
-            console.log("TransitionEndEvent");
+            Polymer.signal("busy-end"); // view change finished when transistion is finished
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -328,6 +328,7 @@
         } else {
           // initial view shows without transistion
           newView.className = "view center";
+          Polymer.signal("busy-end"); // no tranisition, so view changed finished immediately
           //console.log("router no animation");
         }
 
@@ -335,8 +336,7 @@
         if (typeof newElem.viewReady == "function") {
           newElem.viewReady(e.detail);
         }
-
-
+        
       },
 
       viewChanged: function (e) {
@@ -361,7 +361,10 @@
         if (window.ComponentsBase != undefined) compUrl = window.ComponentsBase;
 
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
-        var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";               
+        var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
+
+        // view change starts
+        Polymer.signal("busy-start");
 
         // import elementName 
         e.detail.appFrame.importHref(importPath, function () {
