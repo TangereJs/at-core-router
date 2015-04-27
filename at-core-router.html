@@ -22,6 +22,7 @@
       margin: 0;
       left: 0;
       will-change: left;
+      transform: translateZ(0);
     }
     .view.back {
       left: -100%;
@@ -262,7 +263,8 @@
           currentView.className = "view center";
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {            
+          currentView.addEventListener(TransitionEndEventName(), function (e) {
+            console.log("TransitionEndEvent");
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
@@ -316,9 +318,12 @@
             currentView.viewBeforeUnload(e.detail);
           }
 
-          newView.className = "view transition center";
-          currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
-          //console.log("router animate " + trans);
+          Polymer.dom.flush();
+          this.async(function () {
+            newView.className = "view transition center";
+            currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+            //console.log("router 100 animate " + trans);
+          },100);
 
         } else {
           // initial view shows without transistion
