@@ -118,11 +118,25 @@
       return vs;
     }
 
-    function encodeViewState(vs) {
+    function encodeViewState(vs, initial) {
       var r = "";
       var args = Object.getOwnPropertyNames(vs.args).sort();
       for (var i = 0; i < args.length; i++) {
         var argv = vs.args[args[i]];
+
+        if (!initial) {
+          var vname = args[i];
+          var vnew = current.boundElement[vname];
+          var property = current.boundElement.properties[vname];
+          var defaultValue;
+          if (property && property.value) {
+            defaultValue = property.value;
+          }
+
+          if (typeof defaultValue != "undefined" && vnew == defaultValue) {
+            continue;
+          }
+        }
         r += (r > "" ? "&" : "") + args[i] + (argv != "" ? "=" + encodeURIComponent(argv) : "");
       }
 
@@ -188,29 +202,44 @@
 
         var boundvars = this.context.boundVars;
         var vs = this.context.viewState;
+        var oldState = encodeViewState(vs);
 
         for (var i in boundvars) {
           if (boundvars.hasOwnProperty(i)) {
             var vname = boundvars[i];
             var vold = vs.args[vname];
             var vnew = this.context.boundElement[vname];
+            var property = this.context.boundElement.properties[vname];
+            var defaultValue;
+            if (property && property.value) {
+              defaultValue = property.value;
+            }
 
-            //console.log("property:" + property + ", vold:" + vold + ", vnew:" + vnew);
+            //console.log("vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
 
             // parameter value changed -> update hash
             if (vold == undefined || vnew != vold) {
               vs.args[vname] = vnew;
-
-              // get new normalized hash
-              var state = encodeViewState(vs);
-              window.location.hash = "#!" + state;
-
-              // save new hash to navigation stack
-              stateHistory.push(state);
-
-              // save current viewState
-              current.viewState = vs;
             }
+
+            // don't save default values in viewState
+            if (typeof defaultValue != "undefined" && vnew == defaultValue) {
+              delete vs.args[vname];
+            }
+          }
+
+          // get new normalized hash
+          var state = encodeViewState(vs);
+
+          // update hash if viewState changed
+          if (state != oldState) {
+            window.location.hash = "#!" + state;
+
+            // save new hash to navigation stack
+            stateHistory.push(state);
+
+            // save current viewState
+            current.viewState = vs;
           }
         }
       },
@@ -233,10 +262,10 @@
         var newView = newElem;
         var currentView = e.detail.boundElement;
 
-        // load initial values and bind them          
+        // load initial values and bind them
         if (typeof newElem.properties != "undefined") {
           var boundvars = Object.getOwnPropertyNames(newElem.properties);
-          
+
           if (newElem.caption) {
             this.caption = newElem.caption;
           }
@@ -248,7 +277,7 @@
               var vname = boundvars[i];
               var vval = vs.args[vname];
               if (vval != undefined) newElem[vname] = vval;
-              newElem.addEventListener(vname + '-changed', e.detail.appFrame.viewChangedArg.bind(e.detail.appFrame), false);
+              newElem.addEventListener(Polymer.CaseMap.camelToDashCase(vname) + '-changed', e.detail.appFrame.viewChangedArg.bind(e.detail.appFrame), false);
             }
           }
         }
@@ -279,7 +308,7 @@
         }
 
         // remove hidden views which didn't trigger TransitionEndEvent
-        //     because of user interaction was faster then animation time       
+        //     because of user interaction was faster then animation time
         var hidden = Polymer.dom(appFrame.$.content).querySelectorAll(".hiddenview");
 
         for (var i = 0; i < hidden.length; i++) {
@@ -323,7 +352,7 @@
             newView.className = "view transition center";
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
             //console.log("router 100 animate " + trans);
-          },100);
+          }, 100);
 
         } else {
           // initial view shows without transistion
@@ -336,7 +365,7 @@
         if (typeof newElem.viewReady == "function") {
           newElem.viewReady(e.detail);
         }
-        
+
       },
 
       viewChanged: function (e) {
@@ -366,7 +395,7 @@
         // view change starts
         Polymer.signal("busy-start");
 
-        // import elementName 
+        // import elementName
         e.detail.appFrame.importHref(importPath, function () {
           e.detail.appFrame.viewShow(e, elementName);
         });
@@ -381,7 +410,8 @@
         for (var i in boundvars) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
-          elem[vname] = (vval == undefined ? "" : vval);
+          //elem[vname] = (vval == undefined ? "" : vval);
+          if (vval != undefined) elem[vname] = vval;
         }
       },
 
@@ -435,7 +465,7 @@
         if (vs.view == "") vs.view = this.defaultView;
 
         // set initial, normalized hash
-        var state = encodeViewState(vs);
+        var state = encodeViewState(vs, true);
         window.location.hash = "#!" + state;
 
         // save initial hash to navigation stack
@@ -445,7 +475,7 @@
         current.viewState = vs;
 
         // list to hash change events
-        window.onhashchange = this.hashChanged;
+        window.addEventListener("hashchange", this.hashChanged.bind(this));
 
         // fire view-changed to load initial view
         fireEvent("view-changed", vs);
@@ -455,7 +485,7 @@
         var view = e.detail;
 
         // navigate to external url
-        if (view.indexOf("://") > 0 || view.indexOf("/")==0) {
+        if (view.indexOf("://") > 0 || view.indexOf("/") == 0) {
           location.replace(view);
           return;
         }
