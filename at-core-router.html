@@ -366,6 +366,9 @@
           newElem.viewReady(e.detail);
         }
 
+        // signal new view -- allowing e.g. side panel to highlight current selection
+        Polymer.signal("active-view-changed", { name: elementName });
+
       },
 
       viewChanged: function (e) {
