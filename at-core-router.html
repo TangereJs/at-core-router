@@ -341,10 +341,10 @@
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
         if (currentView) {
-
+          
           // notify currentView about unload
-          if (typeof currentView.viewBeforeUnload == "function") {
-            currentView.viewBeforeUnload(e.detail);
+          if (typeof currentView.detach == "function") {
+            currentView.detach(e.detail);
           }
 
           Polymer.dom.flush();
