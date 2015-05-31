@@ -167,6 +167,15 @@
           type: String,
           value: "at-app/at-home"
         },
+        primaryColor: {
+          type: String,
+          value: "",
+          observer: "colorChanged"
+        },
+        defaultColor: {
+          type: String,
+          value: "lightGreen"
+        },
         caption: {
           type: String,
           value: "",
@@ -180,6 +189,10 @@
           type: Object,
           value: null
         }
+      },
+      colorChanged: function (value, old) {
+        var color = value || this.defaultColor || this.properties.defaultColor.value;
+        Polymer.signal("app-color", value);
       },
       captionChanged: function (value, old) {
         document.title = value;
@@ -269,6 +282,13 @@
 
           if (newElem.caption) {
             this.caption = newElem.caption;
+          }
+
+          if (newElem.primaryColor) {
+            this.primaryColor = newElem.primaryColor;
+          } else {
+            // use default color when no custom color is assigned
+            this.primaryColor = this.defaultColor;
           }
 
           current.boundVars = boundvars;
