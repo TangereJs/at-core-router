@@ -9,9 +9,11 @@
       width: 100%;
       display: block;
     }
+    
     #content {
       position: relative;
     }
+    
     .view {
       box-sizing: border-box;
       display: block;
@@ -19,28 +21,33 @@
       background-color: transparent;
       min-width: 100%;
       min-height: 100%;
-      width: 100%;      
+      width: 100%;
       margin: 0;
       left: 0;
       will-change: left;
       transform: translateZ(0);
     }
+    
     .view.back {
       left: -100%;
       will-change: left;
     }
+    
     .view.center {
       left: 0;
       will-change: left;
     }
+    
     .view.forward {
       left: 100%;
       will-change: left;
     }
+    
     .view.transition {
       transition: all 0.3s ease-in-out;
       -webkit-transition: all 0.3s ease-in-out;
     }
+    
     .androidFix {
       overflow: hidden !important;
       overflow-y: hidden !important;
@@ -362,7 +369,7 @@
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
         if (currentView) {
-          
+
           // notify currentView about unload
           if (typeof currentView.detach == "function") {
             currentView.detach(e.detail);
@@ -388,7 +395,9 @@
         }
 
         // signal new view -- allowing e.g. side panel to highlight current selection
-        Polymer.signal("active-view-changed", { name: elementName });
+        Polymer.signal("active-view-changed", {
+          name: elementName
+        });
 
       },
 
@@ -422,6 +431,11 @@
         // import elementName
         e.detail.appFrame.importHref(importPath, function () {
           e.detail.appFrame.viewShow(e, elementName);
+        }, function () {
+          Polymer.signal("busy-end");
+          alert("ERROR: failed to load view " + e.detail.viewState.view);
+          location.hash = ""; // clear current hash 
+          location.reload(); // go to start app by reloading without hash
         });
       },
 
@@ -539,4 +553,3 @@
     });
   })();
 </script>
-
