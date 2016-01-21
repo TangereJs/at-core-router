@@ -231,7 +231,7 @@
             var vold = vs.args[vname];
             var vnew = this.context.boundElement[vname];
             var property = this.context.boundElement.properties[vname];
-            var defaultValue;
+            var defaultValue = undefined;
             if (property && property.value) {
               defaultValue = property.value;
             }
@@ -406,12 +406,17 @@
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
         var viewName = vs.view;
-
+        
         // use default view name?
         if (viewName == "") viewName = e.detail.appFrame.defaultView;
 
         // add default prefix if no prefix is provided
         if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
+
+        // remove .variant
+        if (viewName.indexOf(".") >= 0) {
+          viewName = viewName.substr(0, viewName.indexOf("."));
+        }
 
         // get element name
         var elementName = viewName.substring(viewName.indexOf("/") + 1);
