@@ -406,7 +406,7 @@
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
         var viewName = vs.view;
-        
+
         // use default view name?
         if (viewName == "") viewName = e.detail.appFrame.defaultView;
 
@@ -430,18 +430,20 @@
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
         var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
 
-        // view change starts
+        // view change starts        
         Polymer.signal("busy-start");
 
         // import elementName
-        e.detail.appFrame.importHref(importPath, function () {
-          e.detail.appFrame.viewShow(e, elementName);
-        }, function () {
-          Polymer.signal("busy-end");
-          alert("ERROR: failed to load view " + e.detail.viewState.view);
-          location.hash = ""; // clear current hash 
-          location.reload(); // go to start app by reloading without hash
-        });
+        appFrame.async(function () {
+          e.detail.appFrame.importHref(importPath, function () {
+            e.detail.appFrame.viewShow(e, elementName);
+          }, function () {
+            Polymer.signal("busy-end");
+            alert("ERROR: failed to load view " + e.detail.viewState.view);
+            location.hash = ""; // clear current hash 
+            location.reload(); // go to start app by reloading without hash
+          });
+        }, 20);
       },
 
       viewArgsChanged: function (e) {
@@ -463,7 +465,7 @@
         var newVs = getViewStateFromHash();
 
         // ignore if view state didn't really change
-        if (encodeViewState(current.viewState) == encodeViewState(newVs)) return;
+        if (encodeViewState(current.viewState, true) == encodeViewState(newVs, true)) return;
 
         // update nav history, detect direction
         var l = stateHistory.length;
@@ -540,7 +542,9 @@
         if (view.indexOf("#") == 0) {
           view = view.substring(1);
         }
+
         this.open(view);
+
       },
       ready: function () {
 
@@ -549,9 +553,6 @@
         document.addEventListener('view-changed', this.viewChanged, false);
         document.addEventListener('view-args-changed', this.viewArgsChanged, false);
         document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
-
-        //-- now started with session-ready signal
-        //--this.start(this);
       }
 
 
