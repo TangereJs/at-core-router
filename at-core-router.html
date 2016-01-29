@@ -134,13 +134,14 @@
 
         if (!initial) {
           var vname = args[i];
-          var vnew = current.boundElement[vname];
+          //var vnew = current.boundElement[vname];
+          var vnew = vs[vname];
           var property = current.boundElement.properties[vname];
           var defaultValue;
-          if (property && property.value) {
+          if (property != undefined && property.value != undefined) {
             defaultValue = property.value;
           }
-
+         
           if (typeof defaultValue != "undefined" && vnew == defaultValue) {
             continue;
           }
@@ -149,7 +150,7 @@
       }
 
       r = vs.view + (r > "" ? "?" + r : "");
-      //console.log("vs:" + r);
+      
       return r;
     }
 
@@ -223,8 +224,10 @@
 
         var boundvars = this.context.boundVars;
         var vs = this.context.viewState;
-        var oldState = encodeViewState(vs);
 
+        var oldState = encodeViewState(vs);
+        //var oldState = encodeViewState(getViewStateFromHash(window.location.hash));
+        
         for (var i in boundvars) {
           if (boundvars.hasOwnProperty(i)) {
             var vname = boundvars[i];
@@ -232,10 +235,10 @@
             var vnew = this.context.boundElement[vname];
             var property = this.context.boundElement.properties[vname];
             var defaultValue = undefined;
-            if (property && property.value) {
+            if (property != undefined && property.value != undefined) {
               defaultValue = property.value;
             }
-
+ 
             //console.log("vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
 
             // parameter value changed -> update hash
@@ -250,10 +253,11 @@
           }
 
           // get new normalized hash
-          var state = encodeViewState(vs);
+          var state = encodeViewState(vs);         
 
           // update hash if viewState changed
           if (state != oldState) {
+            
             window.location.hash = "#!" + state;
 
             // save new hash to navigation stack
@@ -393,6 +397,7 @@
         if (typeof newElem.viewReady == "function") {
           newElem.viewReady(e.detail);
         }
+        console.log("viewReady");
 
         // signal new view -- allowing e.g. side panel to highlight current selection
         Polymer.signal("active-view-changed", {
@@ -434,7 +439,7 @@
         Polymer.signal("busy-start");
 
         // import elementName
-        appFrame.async(function () {
+        appFrame.async(function () {         
           e.detail.appFrame.importHref(importPath, function () {
             e.detail.appFrame.viewShow(e, elementName);
           }, function () {
@@ -452,11 +457,18 @@
 
         // update bound values
         var boundvars = Object.getOwnPropertyNames(elem.properties);
-        for (var i in boundvars) {
+        for (var i = 0; i < boundvars.length;i++) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
+          var property = current.boundElement.properties[vname];
+          var defaultValue;
+          if (property != undefined && property.value != undefined) {
+            defaultValue = property.value;
+          }
           //elem[vname] = (vval == undefined ? "" : vval);
+         
           if (vval != undefined) elem[vname] = vval;
+          if (vval == undefined && defaultValue != undefined) elem[vname] = defaultValue;
         }
       },
 
