@@ -44,8 +44,8 @@
     }
     
     .view.transition {
-      transition: all 0.3s ease-in-out;
-      -webkit-transition: all 0.3s ease-in-out;
+      transition: all 0.2s ease-in-out;
+      -webkit-transition: all 0.2s ease-in-out;
     }
     
     .androidFix {
@@ -54,6 +54,7 @@
       overflow-x: hidden !important;
       display: none;
     }
+
   </style>
 
   <template>
@@ -96,6 +97,11 @@
       ms: "transitionend",
       o: "otransitionend"
     };
+
+    if ('scrollRestoration' in history) {
+      // Back off, browser, I got this...
+      history.scrollRestoration = 'manual';
+    }
 
     function getViewStateFromHash(hash) {
       hash = hash || window.location.hash;
@@ -221,7 +227,7 @@
 
       // the view changed one of its args -> persistent to Url
       viewChangedArg: function (e) {
-
+        
         var boundvars = this.context.boundVars;
         var vs = this.context.viewState;
 
@@ -239,7 +245,7 @@
               defaultValue = property.value;
             }
  
-            //console.log("vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
+            //console.log("history vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
 
             // parameter value changed -> update hash
             if (vold == undefined || vnew != vold) {
@@ -251,22 +257,26 @@
               delete vs.args[vname];
             }
           }
-
-          // get new normalized hash
-          var state = encodeViewState(vs);         
-
-          // update hash if viewState changed
-          if (state != oldState) {
-            
-            window.location.hash = "#!" + state;
-
-            // save new hash to navigation stack
-            stateHistory.push(state);
-
-            // save current viewState
-            current.viewState = vs;
-          }
         }
+
+        // get new normalized hash
+        var state = encodeViewState(vs);         
+
+        // update hash if viewState changed
+        if (state != oldState) {
+            
+          window.location.hash = "#!" + state;
+
+          // save new hash to navigation stack
+          stateHistory.push(state);
+
+          // update back button status
+          Polymer.signal("navigate-back-status", stateHistory.length > 1);
+
+          // save current viewState
+          current.viewState = vs;
+        }
+        
       },
 
       viewShow: function (e, elementName) {
@@ -324,13 +334,27 @@
           currentView.className = "view center";
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {
-            Polymer.signal("busy-end"); // view change finished when transistion is finished
+          currentView.addEventListener(TransitionEndEventName(), function (e) {          
+            
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
               delete ctr;
             }
+
+            Polymer.signal("busy-end-async"); // view change finished when transistion is finished     
+
+            document.body.scrollTop = 0;      // ensure that view is showing at top
+            var el = document.getElementById("mainwrapper");
+            el || el.scrollIntoView();
+
+            if (!('scrollRestoration' in history)) {
+              setTimeout(function () {
+                window.scrollTo(0, 0);
+                el || el.scrollIntoView();
+              }, 250);
+            }
+
           });
 
         } else {
@@ -365,10 +389,11 @@
         var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
         androidFixRequired = false;
         if (androidFixRequired) parent.classList.add("androidFix");
-        //parent.scrollTop = 0;
+        //parent.scrollTop = 0;        
         if (androidFixRequired) parent.classList.remove("androidFix");
 
-        document.body.scrollTop = 0;
+        //document.body.scrollTop = 0;        
+        
 
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
@@ -380,26 +405,28 @@
           }
 
           Polymer.dom.flush();
+          
           this.async(function () {
-            newView.className = "view transition center";
+            
+            newView.className = "view transition center";            
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
             //console.log("router 100 animate " + trans);
+           
           }, 100);
 
         } else {
           // initial view shows without transistion
           newView.className = "view center";
-          Polymer.signal("busy-end"); // no tranisition, so view changed finished immediately
+          Polymer.signal("busy-end-async"); // no tranisition, so view changed finished immediately
           //console.log("router no animation");
         }
 
         // call viewReady of new view element
         if (typeof newElem.viewReady == "function") {
           newElem.viewReady(e.detail);
-        }
-        console.log("viewReady");
+        }        
 
-        // signal new view -- allowing e.g. side panel to highlight current selection
+        // signal new view -- allowing e.g. side panel to highlight current selection        
         Polymer.signal("active-view-changed", {
           name: elementName
         });
@@ -436,14 +463,14 @@
         var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
 
         // view change starts        
-        Polymer.signal("busy-start");
+        Polymer.signal("busy-start-async");
 
         // import elementName
         appFrame.async(function () {         
           e.detail.appFrame.importHref(importPath, function () {
             e.detail.appFrame.viewShow(e, elementName);
           }, function () {
-            Polymer.signal("busy-end");
+            Polymer.signal("busy-end-async");
             alert("ERROR: failed to load view " + e.detail.viewState.view);
             location.hash = ""; // clear current hash 
             location.reload(); // go to start app by reloading without hash
@@ -505,6 +532,9 @@
 
         // save new viewState
         current.viewState = newVs;
+                
+        // update back button status
+        Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
         // fire event
         fireEvent(eventName, newVs);
