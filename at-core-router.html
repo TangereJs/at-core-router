@@ -343,8 +343,10 @@
             }
 
             Polymer.signal("busy-end-async"); // view change finished when transistion is finished     
+            
+            // ensure that view is showing at top
 
-            document.body.scrollTop = 0;      // ensure that view is showing at top
+            document.body.scrollTop = 0;     
             var el = document.getElementById("mainwrapper");
             el || el.scrollIntoView();
 
@@ -355,6 +357,10 @@
               }, 250);
             }
 
+            if (window.parentIFrame != null) {              
+              window.parentIFrame.sendMessage({ cmd: "scroll-into-view" });              
+            }
+
           });
 
         } else {
@@ -362,6 +368,7 @@
           newView.className = "view center";
 
         }
+
 
         // remove hidden views which didn't trigger TransitionEndEvent
         //     because of user interaction was faster then animation time
