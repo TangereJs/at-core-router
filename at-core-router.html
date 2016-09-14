@@ -58,7 +58,7 @@
   </style>
 
   <template>
-    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start"></at-core-signals>
+    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
@@ -75,7 +75,8 @@
       boundElement: null, // current active content element, bound to viewState args
       boundVars: null, // collection of names for bound variables of current component
       direction: "none", // forward, back, none  for view transition
-      observer: null // object observer for view arg changes
+      observer: null, // object observer for view arg changes
+      registeredVars: {} // additional boundVars registered at runtime via register-state-var signal
     }
 
 
@@ -279,6 +280,28 @@
         
       },
 
+      registerVar: function(e) {   
+
+        if (this.context.viewState.args[e.detail.name] !== undefined) e.detail.value = this.context.viewState.args[e.detail.name];
+
+        if (this.context.boundVars == null) {
+
+          this.context.registeredVars[e.detail.name] = e.detail;
+          
+        } else {
+          console.log("boundVars already initalized, this condition is currently not implemeneted");
+        }
+      },
+
+      updateVar: function(e) {
+       
+        // update state if initial value or changed value
+        if (this.context.viewState.args[e.detail.name] === undefined || this.context.viewState.args[e.detail.name] !== e.detail.value) {          
+          this.context.boundElement[e.detail.name] = e.detail.value;
+          this.viewChangedArg(null);
+        }
+      },
+
       viewShow: function (e, elementName) {
 
         var appFrame = e.detail.appFrame;
@@ -311,6 +334,22 @@
             // use default color when no custom color is assigned
             this.primaryColor = this.defaultColor;
           }
+
+          // extend element with preregistered vars
+          var preregVars = Object.getOwnPropertyNames(this.context.registeredVars);          
+          for (var i in preregVars) {
+            if (preregVars.hasOwnProperty(i)) {
+              var preregVar = preregVars[i];
+
+              // add new property if missing
+              if (newElem[preregVar] == undefined) {
+                newElem[preregVar] = null;
+                newElem.properties[preregVar] = {};
+                boundvars.push(preregVar);
+              }
+            }
+          }
+
 
           current.boundVars = boundvars;
 
@@ -491,18 +530,26 @@
 
         // update bound values
         var boundvars = Object.getOwnPropertyNames(elem.properties);
+        
         for (var i = 0; i < boundvars.length;i++) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
-          var property = current.boundElement.properties[vname];
-          var defaultValue;
-          if (property != undefined && property.value != undefined) {
-            defaultValue = property.value;
+
+          if (current.registeredVars[vname] !== undefined) {
+            // updated registered property            
+            if(vval !== undefined) current.registeredVars[vname].element.value = vval;
+          } else {
+            // updated regular property
+            var property = current.boundElement.properties[vname];
+            var defaultValue;
+            if (property != undefined && property.value != undefined) {
+              defaultValue = property.value;
+            }
+            //elem[vname] = (vval == undefined ? "" : vval);
+
+            if (vval != undefined) elem[vname] = vval;
+            if (vval == undefined && defaultValue != undefined) elem[vname] = defaultValue;
           }
-          //elem[vname] = (vval == undefined ? "" : vval);
-         
-          if (vval != undefined) elem[vname] = vval;
-          if (vval == undefined && defaultValue != undefined) elem[vname] = defaultValue;
         }
       },
 
@@ -548,7 +595,7 @@
       },
 
       start: function () {
-
+        console.log("at-core-router start");
         // save atApp reference
         current.appFrame = this;
 
@@ -596,7 +643,7 @@
 
       },
       ready: function () {
-
+        console.log("at-core-router ready");
         this.context = current;
 
         document.addEventListener('view-changed', this.viewChanged, false);
