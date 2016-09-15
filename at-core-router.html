@@ -247,9 +247,9 @@
             }
  
             //console.log("history vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
-
+            
             // parameter value changed -> update hash
-            if (vold == undefined || vnew != vold) {
+            if (vold == undefined || (vnew != null && vnew != vold)) {
               vs.args[vname] = vnew;
             }
 
@@ -281,7 +281,7 @@
       },
 
       registerVar: function(e) {   
-
+       
         if (this.context.viewState.args[e.detail.name] !== undefined) e.detail.value = this.context.viewState.args[e.detail.name];
 
         if (this.context.boundVars == null) {
@@ -345,12 +345,16 @@
               if (newElem[preregVar] == undefined) {
                 newElem[preregVar] = null;
                 newElem.properties[preregVar] = {};
+                var dv = this.context.registeredVars[preregVar].defaultValue;
+                if (dv != undefined && dv != null) {
+                  newElem.properties[preregVar].value = dv;
+                  newElem[preregVar] = dv;
+                }
                 boundvars.push(preregVar);
               }
             }
           }
-
-
+          
           current.boundVars = boundvars;
 
           for (var i in boundvars) {
@@ -534,11 +538,20 @@
         for (var i = 0; i < boundvars.length;i++) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
-
+         
           if (current.registeredVars[vname] !== undefined) {
-            // updated registered property            
-            if(vval !== undefined) current.registeredVars[vname].element.value = vval;
-          } else {
+            // updated registered property   
+            if (vval == undefined) vval = current.registeredVars[vname].defaultValue;
+            if (vval !== undefined) {
+              var propName = "value";       // default property name is value              
+              if (vname.indexOf(".") > 0) { // if we have a stateProperty (like at-silver-list1.page) we need to extract the name of the property to use
+                propName = vname.split(".")[1];
+              }
+              current.registeredVars[vname].element[propName] = vval;
+            }
+            
+          }
+          {
             // updated regular property
             var property = current.boundElement.properties[vname];
             var defaultValue;
