@@ -1,6 +1,6 @@
 {
   "name": "at-core-router",
-  "version": "1.0.0.181",
+  "version": "1.0.0.184",
   "private": true,
   "dependencies": {
     "polymer": "Polymer/polymer#master"

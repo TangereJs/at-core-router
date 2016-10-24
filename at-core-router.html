@@ -1,7 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../at-core-signals/at-core-signals.html">
 
-
 <dom-module id="at-core-router">
 
   <style>
@@ -58,7 +57,7 @@
   </style>
 
   <template>
-    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar"></at-core-signals>
+    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar" on-app-scroll-to-top="appScrollToTop"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
@@ -388,21 +387,7 @@
             Polymer.signal("busy-end-async"); // view change finished when transistion is finished     
             
             // ensure that view is showing at top
-
-            document.body.scrollTop = 0;     
-            var el = document.getElementById("mainwrapper");
-            el || el.scrollIntoView();
-
-            if (!('scrollRestoration' in history)) {
-              setTimeout(function () {
-                window.scrollTo(0, 0);
-                el || el.scrollIntoView();
-              }, 250);
-            }
-
-            if (window.parentIFrame != null) {              
-              window.parentIFrame.sendMessage({ cmd: "scroll-into-view" });              
-            }
+            this.appScrollToTop();
 
           });
 
@@ -480,6 +465,25 @@
         Polymer.signal("active-view-changed", {
           name: elementName
         });
+
+      },
+
+      appScrollToTop: function () {
+
+        document.body.scrollTop = 0;
+        var el = document.getElementById("mainwrapper");
+        el || el.scrollIntoView();
+
+        if (!('scrollRestoration' in history)) {
+          setTimeout(function () {
+            window.scrollTo(0, 0);
+            el || el.scrollIntoView();
+          }, 250);
+        }
+
+        if (window.parentIFrame != null) {
+          window.parentIFrame.sendMessage({ cmd: "scroll-into-view" });
+        }
 
       },
 
