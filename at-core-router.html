@@ -375,6 +375,8 @@
           newView.className = "view " + trans;
           currentView.className = "view center";
 
+          var that = this;
+
           // remove previous view when animation is finished
           currentView.addEventListener(TransitionEndEventName(), function (e) {          
             
@@ -387,7 +389,7 @@
             Polymer.signal("busy-end-async"); // view change finished when transistion is finished     
             
             // ensure that view is showing at top
-            this.appScrollToTop();
+            that.appScrollToTop();
 
           });
 
