@@ -294,6 +294,8 @@
 
       updateVar: function(e) {
        
+        if (this._waitForViewReady) return;
+
         // update state if initial value or changed value
         if (this.context.viewState.args[e.detail.name] === undefined || this.context.viewState.args[e.detail.name] !== e.detail.value) {          
           this.context.boundElement[e.detail.name] = e.detail.value;
@@ -303,12 +305,7 @@
 
       viewShow: function (e, elementName) {
 
-        var appFrame = e.detail.appFrame;
-        var vs = e.detail.viewState;
-        var viewName = vs.view;
-
         var newElem = document.createElement(elementName);
-        var trans = e.detail.direction;
 
         // todo: improve handle/detect error
         if (typeof newElem.properties == "undefined") {
@@ -316,6 +313,25 @@
           return;
         }
 
+        if (newElem.asyncView) {
+          this._waitForViewReady = true;
+          newElem._router_e = e;          
+          newElem._router = this;
+        } else {
+          this._waitForViewReady = false;
+          this._viewShowAsync(e, elementName, newElem);
+        }
+      },
+
+      _viewShowAsync: function (e, elementName, newElem) {
+
+        this._waitForViewReady = false;
+
+        var appFrame = e.detail.appFrame;
+        var vs = e.detail.viewState;
+        var viewName = vs.view;
+
+        var trans = e.detail.direction;
         var newView = newElem;
         var currentView = e.detail.boundElement;
 
@@ -334,7 +350,7 @@
             this.primaryColor = this.defaultColor;
           }
 
-          // extend element with preregistered vars
+          // extend element with preregistered vars          
           var preregVars = Object.getOwnPropertyNames(this.context.registeredVars);          
           for (var i in preregVars) {
             if (preregVars.hasOwnProperty(i)) {
