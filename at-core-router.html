@@ -152,7 +152,9 @@
             continue;
           }
         }
-        r += (r > "" ? "&" : "") + args[i] + (argv != "" ? "=" + encodeURIComponent(argv) : "");
+
+        // preserve / for 'nicer' arguments
+        r += (r > "" ? "&" : "") + args[i] + (argv != "" ? "=" + encodeURIComponent(argv).split("%2F").join("/") : "");
       }
 
       r = vs.view + (r > "" ? "?" + r : "");
