@@ -548,7 +548,7 @@
             alert("ERROR: failed to load view " + e.detail.viewState.view);
             location.hash = ""; // clear current hash 
             location.reload(); // go to start app by reloading without hash
-          });
+          }, true);
         }, 20);
       },
 
@@ -687,7 +687,6 @@
         document.addEventListener('view-args-changed', this.viewArgsChanged, false);
         document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
       }
-
 
     });
   })();
