@@ -284,13 +284,13 @@
       registerVar: function(e) {   
        
         if (this.context.viewState.args[e.detail.name] !== undefined) e.detail.value = this.context.viewState.args[e.detail.name];
-
+        
         if (this.context.boundVars == null) {
 
           this.context.registeredVars[e.detail.name] = e.detail;
           
         } else {
-          console.log("boundVars already initalized, this condition is currently not implemeneted");
+          //console.log("boundVars already initalized, this condition is currently not implemeneted");
         }
       },
 
@@ -306,6 +306,10 @@
       },
 
       viewShow: function (e, elementName) {
+        
+        // reset context vars
+        this.context.boundVars = null;
+        this.context.registeredVars = {};
 
         var newElem = document.createElement(elementName);
 
@@ -315,7 +319,7 @@
           return;
         }
 
-        if (newElem.asyncView) {
+        if (newElem.asyncView && !newElem.rendered) {
           this._waitForViewReady = true;
           newElem._router_e = e;          
           newElem._router = this;
@@ -492,12 +496,12 @@
 
         document.body.scrollTop = 0;
         var el = document.getElementById("mainwrapper");
-        el || el.scrollIntoView();
+        if(el) el.scrollIntoView();
 
         if (!('scrollRestoration' in history)) {
           setTimeout(function () {
             window.scrollTo(0, 0);
-            el || el.scrollIntoView();
+            if(el) el.scrollIntoView();
           }, 250);
         }
 
@@ -508,7 +512,7 @@
       },
 
       viewChanged: function (e) {
-
+        
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
         var viewName = vs.view;
@@ -553,6 +557,7 @@
       },
 
       viewArgsChanged: function (e) {
+
         var vs = e.detail.viewState;
         var elem = e.detail.boundElement;
 
@@ -591,7 +596,7 @@
       },
 
       hashChanged: function (e) {
-
+       
         var newVs = getViewStateFromHash();
 
         // ignore if view state didn't really change
@@ -628,6 +633,7 @@
         Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
         // fire event
+        //console.log("router: " + eventName);
         fireEvent(eventName, newVs);
       },
 
