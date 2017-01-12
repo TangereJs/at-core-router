@@ -3,6 +3,7 @@
   "version": "1.0.0.219",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#master"
+    "tangere": "TangereJs/tangere#0.8-preview",
+    "at-core-signals": "TangereJs/at-core-signals#0.8-preview"
   }
 }

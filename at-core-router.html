@@ -1,4 +1,4 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../tangere/tangere.html">
 <link rel="import" href="../at-core-signals/at-core-signals.html">
 
 <dom-module id="at-core-router">
@@ -8,11 +8,11 @@
       width: 100%;
       display: block;
     }
-    
+
     #content {
       position: relative;
     }
-    
+
     .view {
       box-sizing: border-box;
       display: block;
@@ -26,27 +26,27 @@
       will-change: left;
       transform: translateZ(0);
     }
-    
+
     .view.back {
       left: -100%;
       will-change: left;
     }
-    
+
     .view.center {
       left: 0;
       will-change: left;
     }
-    
+
     .view.forward {
       left: 100%;
       will-change: left;
     }
-    
+
     .view.transition {
       transition: all 0.2s ease-in-out;
       -webkit-transition: all 0.2s ease-in-out;
     }
-    
+
     .androidFix {
       overflow: hidden !important;
       overflow-y: hidden !important;
@@ -147,7 +147,7 @@
           if (property != undefined && property.value != undefined) {
             defaultValue = property.value;
           }
-         
+
           if (typeof defaultValue != "undefined" && vnew == defaultValue) {
             continue;
           }
@@ -158,7 +158,7 @@
       }
 
       r = vs.view + (r > "" ? "?" + r : "");
-      
+
       return r;
     }
 
@@ -229,13 +229,13 @@
 
       // the view changed one of its args -> persistent to Url
       viewChangedArg: function (e) {
-        
+
         var boundvars = this.context.boundVars;
         var vs = this.context.viewState;
 
         var oldState = encodeViewState(vs);
         //var oldState = encodeViewState(getViewStateFromHash(window.location.hash));
-        
+
         for (var i in boundvars) {
           if (boundvars.hasOwnProperty(i)) {
             var vname = boundvars[i];
@@ -246,9 +246,9 @@
             if (property != undefined && property.value != undefined) {
               defaultValue = property.value;
             }
- 
+
             //console.log("history vname:" + vname + ", vold:" + vold + ", vnew:" + vnew + ", default:" + defaultValue);
-            
+
             // parameter value changed -> update hash
             if (vold == undefined || (vnew != null && vnew != vold)) {
               vs.args[vname] = vnew;
@@ -262,11 +262,11 @@
         }
 
         // get new normalized hash
-        var state = encodeViewState(vs);         
+        var state = encodeViewState(vs);
 
         // update hash if viewState changed
         if (state != oldState) {
-            
+
           window.location.hash = "#!" + state;
 
           // save new hash to navigation stack
@@ -278,35 +278,35 @@
           // save current viewState
           current.viewState = vs;
         }
-        
+
       },
 
-      registerVar: function(e) {   
-       
+      registerVar: function(e) {
+
         if (this.context.viewState.args[e.detail.name] !== undefined) e.detail.value = this.context.viewState.args[e.detail.name];
-        
+
         if (this.context.boundVars == null) {
 
           this.context.registeredVars[e.detail.name] = e.detail;
-          
+
         } else {
           //console.log("boundVars already initalized, this condition is currently not implemeneted");
         }
       },
 
       updateVar: function(e) {
-       
+
         if (this._waitForViewReady) return;
 
         // update state if initial value or changed value
-        if (this.context.viewState.args[e.detail.name] === undefined || this.context.viewState.args[e.detail.name] !== e.detail.value) {          
+        if (this.context.viewState.args[e.detail.name] === undefined || this.context.viewState.args[e.detail.name] !== e.detail.value) {
           this.context.boundElement[e.detail.name] = e.detail.value;
           this.viewChangedArg(null);
         }
       },
 
       viewShow: function (e, elementName) {
-        
+
         // reset context vars
         this.context.boundVars = null;
         this.context.registeredVars = {};
@@ -321,7 +321,7 @@
 
         if (newElem.asyncView && !newElem.rendered) {
           this._waitForViewReady = true;
-          newElem._router_e = e;          
+          newElem._router_e = e;
           newElem._router = this;
         } else {
           this._waitForViewReady = false;
@@ -356,8 +356,8 @@
             this.primaryColor = this.defaultColor;
           }
 
-          // extend element with preregistered vars          
-          var preregVars = Object.getOwnPropertyNames(this.context.registeredVars);          
+          // extend element with preregistered vars
+          var preregVars = Object.getOwnPropertyNames(this.context.registeredVars);
           for (var i in preregVars) {
             if (preregVars.hasOwnProperty(i)) {
               var preregVar = preregVars[i];
@@ -375,7 +375,7 @@
               }
             }
           }
-          
+
           current.boundVars = boundvars;
 
           for (var i in boundvars) {
@@ -400,16 +400,16 @@
           var that = this;
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {          
-            
+          currentView.addEventListener(TransitionEndEventName(), function (e) {
+
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
               ctr = null;
               delete ctr;
             }
 
-            Polymer.signal("busy-end-async"); // view change finished when transistion is finished     
-            
+            Polymer.signal("busy-end-async"); // view change finished when transistion is finished
+
             // ensure that view is showing at top
             that.appScrollToTop();
 
@@ -448,11 +448,11 @@
         var androidFixRequired = (navigator.userAgent.toLowerCase().indexOf("android") > -1) || (navigator.userAgent.toLowerCase().indexOf("chrome") > -1);
         androidFixRequired = false;
         if (androidFixRequired) parent.classList.add("androidFix");
-        //parent.scrollTop = 0;        
+        //parent.scrollTop = 0;
         if (androidFixRequired) parent.classList.remove("androidFix");
 
-        //document.body.scrollTop = 0;        
-        
+        //document.body.scrollTop = 0;
+
 
         // Position the new page and the current page at the ending position of their animation
         // with a transition class indicating the duration of the animation
@@ -464,13 +464,13 @@
           }
 
           Polymer.dom.flush();
-          
+
           this.async(function () {
-            
-            newView.className = "view transition center";            
+
+            newView.className = "view transition center";
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
             //console.log("router 100 animate " + trans);
-           
+
           }, 100);
 
         } else {
@@ -483,9 +483,9 @@
         // call viewReady of new view element
         if (typeof newElem.viewReady == "function") {
           newElem.viewReady(e.detail);
-        }        
+        }
 
-        // signal new view -- allowing e.g. side panel to highlight current selection        
+        // signal new view -- allowing e.g. side panel to highlight current selection
         Polymer.signal("active-view-changed", {
           name: elementName
         });
@@ -512,7 +512,7 @@
       },
 
       viewChanged: function (e) {
-        
+
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
         var viewName = vs.view;
@@ -540,17 +540,17 @@
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
         var importPath = viewName.indexOf("/") >= 0 ? compUrl + viewName + ".html" : viewName + ".html";
 
-        // view change starts        
+        // view change starts
         Polymer.signal("busy-start-async");
 
         // import elementName
-        appFrame.async(function () {         
+        appFrame.async(function () {
           e.detail.appFrame.importHref(importPath, function () {
             e.detail.appFrame.viewShow(e, elementName);
           }, function () {
             Polymer.signal("busy-end-async");
             alert("ERROR: failed to load view " + e.detail.viewState.view);
-            location.hash = ""; // clear current hash 
+            location.hash = ""; // clear current hash
             location.reload(); // go to start app by reloading without hash
           }, true);
         }, 20);
@@ -563,22 +563,22 @@
 
         // update bound values
         var boundvars = Object.getOwnPropertyNames(elem.properties);
-        
+
         for (var i = 0; i < boundvars.length;i++) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
-         
+
           if (current.registeredVars[vname] !== undefined) {
-            // updated registered property   
+            // updated registered property
             if (vval == undefined) vval = current.registeredVars[vname].defaultValue;
             if (vval !== undefined) {
-              var propName = "value";       // default property name is value              
+              var propName = "value";       // default property name is value
               if (vname.indexOf(".") > 0) { // if we have a stateProperty (like at-silver-list1.page) we need to extract the name of the property to use
                 propName = vname.split(".")[1];
               }
               current.registeredVars[vname].element[propName] = vval;
             }
-            
+
           }
           {
             // updated regular property
@@ -596,7 +596,7 @@
       },
 
       hashChanged: function (e) {
-       
+
         var newVs = getViewStateFromHash();
 
         // ignore if view state didn't really change
@@ -628,7 +628,7 @@
 
         // save new viewState
         current.viewState = newVs;
-                
+
         // update back button status
         Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
