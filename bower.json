@@ -1,6 +1,6 @@
 {
   "name": "at-core-router",
-  "version": "1.0.0.219",
+  "version": "1.0.0.227",
   "private": true,
   "dependencies": {
     "tangere": "TangereJs/tangere#master",

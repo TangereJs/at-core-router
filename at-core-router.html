@@ -341,6 +341,12 @@
         var newView = newElem;
         var currentView = e.detail.boundElement;
 
+
+        // call viewUnload on previous view element
+        if (currentView && typeof currentView.viewUnload == "function") {
+          currentView.viewUnload(e.detail);
+        }
+
         // load initial values and bind them
         if (typeof newElem.properties != "undefined") {
           var boundvars = Object.getOwnPropertyNames(newElem.properties);
@@ -459,7 +465,7 @@
         if (currentView) {
 
           // notify currentView about unload
-          if (typeof currentView.detach == "function") {
+          if (typeof currentView.detach == "function") {          
             currentView.detach(e.detail);
           }
 
