@@ -499,10 +499,16 @@
       },
 
       appScrollToTop: function () {
-
+    
+        var el = null;
+        console.log("body.scrollTop");
         document.body.scrollTop = 0;
-        var el = document.getElementById("mainwrapper");
+        
+        /* is scrollIntoView needed here? causes problem in "Device Simulator" in Chrome
+        el = document.getElementById("mainwrapper");
+        if (el) console.log("scrollIntoView");
         if(el) el.scrollIntoView();
+        */
 
         if (!('scrollRestoration' in history)) {
           setTimeout(function () {
