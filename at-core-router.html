@@ -546,7 +546,7 @@
         // update back button status
         Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
-        var compUrl = this.resolveUrl("../");
+        var compUrl = "/components/"; // ??  this.resolveUrl("../");
         if (window.ComponentsBase != undefined) compUrl = window.ComponentsBase;
 
         // load view from other component (viewName = component-name/view-name) or from localfolder (view-name)
