@@ -496,6 +496,17 @@
           name: elementName
         });
 
+        // log app launch event
+        var event = {};
+        event.event_type = "app";
+        event.event_name = "start";
+       
+        Polymer.signal("log-event", {
+          event_type: "app",
+          event_name: "launch",
+          name: elementName
+        });
+
       },
 
       appScrollToTop: function () {
