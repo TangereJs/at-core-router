@@ -705,6 +705,12 @@
           view = view.substring(1);
         }
 
+        // exit if view is already showing
+        if (this.context.viewState.view == view) {
+          Polymer.signal("busy-end-async");
+          return;
+        }
+
         this.open(view);
 
       },
