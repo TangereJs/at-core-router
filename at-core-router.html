@@ -211,7 +211,7 @@
         Polymer.signal("app-color", value);
       },
       captionChanged: function (value, old) {
-        document.title = value;
+        //document.title = value;        
         Polymer.signal("app-caption", value);
       },
       open: function (view) {
@@ -495,6 +495,7 @@
         Polymer.signal("active-view-changed", {
           name: elementName
         });
+               
 
         // log app launch event
         var event = {};
