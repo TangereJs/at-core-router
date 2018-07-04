@@ -2,68 +2,66 @@
 <link rel="import" href="../at-core-signals/at-core-signals.html">
 
 <dom-module id="at-core-router">
-
-  <style>
-    :host {
-      width: 100%;
-      display: block;
-    }
-
-    #content {
-      position: relative;
-    }
-
-    .view {
-      box-sizing: border-box;
-      display: block;
-      position: absolute;
-      background-color: transparent;
-      min-width: 100%;
-      min-height: 100%;
-      width: 100%;
-      margin: 0;
-      left: 0;
-      will-change: left;
-      transform: translateZ(0);
-    }
-
-    .view.back {
-      left: -100%;
-      will-change: left;
-    }
-
-    .view.center {
-      left: 0;
-      will-change: left;
-    }
-
-    .view.forward {
-      left: 100%;
-      will-change: left;
-    }
-
-    .view.transition {
-      transition: all 0.2s ease-in-out;
-      -webkit-transition: all 0.2s ease-in-out;
-    }
-
-    .androidFix {
-      overflow: hidden !important;
-      overflow-y: hidden !important;
-      overflow-x: hidden !important;
-      display: none;
-    }
-
-  </style>
-
   <template>
-    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar" on-app-scroll-to-top="appScrollToTop"></at-core-signals>
+    <style>
+      :host {
+        width: 100%;
+        display: block;
+      }
+
+      #content {
+        position: relative;
+      }
+
+      .view {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        background-color: transparent;
+        min-width: 100%;
+        min-height: 100%;
+        width: 100%;
+        margin: 0;
+        left: 0;
+        will-change: left;
+        transform: translateZ(0);
+      }
+
+      .view.back {
+        left: -100%;
+        will-change: left;
+      }
+
+      .view.center {
+        left: 0;
+        will-change: left;
+      }
+
+      .view.forward {
+        left: 100%;
+        will-change: left;
+      }
+
+      .view.transition {
+        transition: all 0.2s ease-in-out;
+        -webkit-transition: all 0.2s ease-in-out;
+      }
+
+      .androidFix {
+        overflow: hidden !important;
+        overflow-y: hidden !important;
+        overflow-x: hidden !important;
+        display: none;
+      }
+    </style>
+    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar"
+      on-app-scroll-to-top="appScrollToTop"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
 
 <script>
-  (function () {
+  (function() {
 
     var stateHistory = []; // used to automatically detect a "back" navigation
 
@@ -79,7 +77,7 @@
     }
 
 
-    var getVendorPrefix = function () {
+    var getVendorPrefix = function() {
       var styles = window.getComputedStyle(document.documentElement, '');
       var pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1];
       var vPrefix = {
@@ -206,15 +204,15 @@
           value: null
         }
       },
-      colorChanged: function (value, old) {
+      colorChanged: function(value, old) {
         var color = value || this.defaultColor || this.properties.defaultColor.value;
         Polymer.signal("app-color", value);
       },
-      captionChanged: function (value, old) {
+      captionChanged: function(value, old) {
         //document.title = value;        
         Polymer.signal("app-caption", value);
       },
-      open: function (view) {
+      open: function(view) {
 
         if (!view) {
           view = this.defaultView;
@@ -228,7 +226,7 @@
       },
 
       // the view changed one of its args -> persistent to Url
-      viewChangedArg: function (e) {
+      viewChangedArg: function(e) {
 
         var boundvars = this.context.boundVars;
         var vs = this.context.viewState;
@@ -305,7 +303,7 @@
         }
       },
 
-      viewShow: function (e, elementName) {
+      viewShow: function(e, elementName) {
 
         // reset context vars
         this.context.boundVars = null;
@@ -329,7 +327,7 @@
         }
       },
 
-      _viewShowAsync: function (e, elementName, newElem) {
+      _viewShowAsync: function(e, elementName, newElem) {
 
         this._waitForViewReady = false;
 
@@ -406,7 +404,7 @@
           var that = this;
 
           // remove previous view when animation is finished
-          currentView.addEventListener(TransitionEndEventName(), function (e) {
+          currentView.addEventListener(TransitionEndEventName(), function(e) {
 
             if (e.target.classList.contains("hiddenview")) {
               var ctr = Polymer.dom(appFrame.$.content).removeChild(e.target);
@@ -465,13 +463,13 @@
         if (currentView) {
 
           // notify currentView about unload
-          if (typeof currentView.detach == "function") {          
+          if (typeof currentView.detach == "function") {
             currentView.detach(e.detail);
           }
 
           Polymer.dom.flush();
 
-          this.async(function () {
+          this.async(function() {
 
             newView.className = "view transition center";
             currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
@@ -495,13 +493,13 @@
         Polymer.signal("active-view-changed", {
           name: elementName
         });
-               
+
 
         // log app launch event
         var event = {};
         event.event_type = "app";
         event.event_name = "start";
-       
+
         Polymer.signal("log-event", {
           event_type: "app",
           event_name: "launch",
@@ -510,12 +508,12 @@
 
       },
 
-      appScrollToTop: function () {
-    
+      appScrollToTop: function() {
+
         var el = null;
         console.log("body.scrollTop");
         document.body.scrollTop = 0;
-        
+
         /* is scrollIntoView needed here? causes problem in "Device Simulator" in Chrome
         el = document.getElementById("mainwrapper");
         if (el) console.log("scrollIntoView");
@@ -523,9 +521,9 @@
         */
 
         if (!('scrollRestoration' in history)) {
-          setTimeout(function () {
+          setTimeout(function() {
             window.scrollTo(0, 0);
-            if(el) el.scrollIntoView();
+            if (el) el.scrollIntoView();
           }, 250);
         }
 
@@ -535,7 +533,7 @@
 
       },
 
-      viewChanged: function (e) {
+      viewChanged: function(e) {
 
         var appFrame = e.detail.appFrame;
         var vs = e.detail.viewState;
@@ -568,10 +566,10 @@
         Polymer.signal("busy-start-async");
 
         // import elementName
-        appFrame.async(function () {
-          e.detail.appFrame.importHref(importPath, function () {
+        appFrame.async(function() {
+          e.detail.appFrame.importHref(importPath, function() {
             e.detail.appFrame.viewShow(e, elementName);
-          }, function () {
+          }, function() {
             Polymer.signal("busy-end-async");
             alert("ERROR: failed to load view " + e.detail.viewState.view);
             location.hash = ""; // clear current hash
@@ -580,7 +578,7 @@
         }, 20);
       },
 
-      viewArgsChanged: function (e) {
+      viewArgsChanged: function(e) {
 
         var vs = e.detail.viewState;
         var elem = e.detail.boundElement;
@@ -588,7 +586,7 @@
         // update bound values
         var boundvars = Object.getOwnPropertyNames(elem.properties);
 
-        for (var i = 0; i < boundvars.length;i++) {
+        for (var i = 0; i < boundvars.length; i++) {
           var vname = boundvars[i];
           var vval = vs.args[vname];
 
@@ -619,7 +617,7 @@
         }
       },
 
-      hashChanged: function (e) {
+      hashChanged: function(e) {
 
         var newVs = getViewStateFromHash();
 
@@ -661,7 +659,7 @@
         fireEvent(eventName, newVs);
       },
 
-      start: function () {
+      start: function() {
         console.log("at-core-router start");
         // save atApp reference
         current.appFrame = this;
@@ -688,7 +686,7 @@
         // fire view-changed to load initial view
         fireEvent("view-changed", vs);
       },
-      navigateTo: function (e) {
+      navigateTo: function(e) {
 
         var view = e.detail;
 
@@ -715,7 +713,7 @@
         this.open(view);
 
       },
-      ready: function () {
+      ready: function() {
         console.log("at-core-router ready");
         this.context = current;
 
