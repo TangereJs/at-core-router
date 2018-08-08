@@ -172,7 +172,6 @@
       document.dispatchEvent(event);
     }
 
-
     Polymer({
       is: 'at-core-router',
       _scopeCssViaAttr: true,
@@ -261,7 +260,7 @@
 
         // get new normalized hash
         var state = encodeViewState(vs);
-
+  
         // update hash if viewState changed
         if (state != oldState) {
 
@@ -398,8 +397,13 @@
         // position views
         if (currentView) {
 
-          newView.className = "view " + trans;
-          currentView.className = "view center";
+          // in IE11, directly setting .className property breaks polymer styling computation
+          // instead, add class names to classList property
+          this._setClassList(newView, "view" + trans);
+
+          // in IE11, directly setting .className property breaks polymer styling computation
+          // instead, add class names to classList property
+          this._setClassList(currentView, "view center");
 
           var that = this;
 
@@ -420,11 +424,10 @@
           });
 
         } else {
-
-          newView.className = "view center";
-
+          // in IE11, directly setting .className property breaks polymer styling computation
+          // instead, add class names to classList property
+          this._setClassList(newView, "view center");
         }
-
 
         // remove hidden views which didn't trigger TransitionEndEvent
         //     because of user interaction was faster then animation time
@@ -440,7 +443,7 @@
         Polymer.dom(parent).appendChild(newElem);
 
         // transform ShadyDom styles of innerHTML
-        if (!Polymer.Settings.useShadow) Polymer.StyleTransformer.dom(parent, this.is, true);
+        if (Polymer.StyleTransformer) Polymer.StyleTransformer.dom(parent, this.is, true);
 
         // Force reflow to make sure the style changes
         // are applied before rendering the element
@@ -470,16 +473,23 @@
           Polymer.dom.flush();
 
           this.async(function() {
-
-            newView.className = "view transition center";
-            currentView.className = "view hiddenview transition " + (trans === "back" ? "forward" : "back");
+            // in IE11, directly setting .className property breaks polymer styling computation
+            // instead, add class names to classList property
+            this._setClassList(newView, "view transition center");
+            
+            // in IE11, directly setting .className property breaks polymer styling computation
+            // instead, add class names to classList property
+            var transDirection = trans === "back" ? "forward" : "back";
+            this._setClassList(currentView, "view hiddenview transition " + transDirection);
             //console.log("router 100 animate " + trans);
 
           }, 100);
 
         } else {
           // initial view shows without transistion
-          newView.className = "view center";
+          // in IE11, directly setting .className property breaks polymer styling computation
+          // instead, add class names to classList property
+          this._setClassList(newView, "view center");
           Polymer.signal("busy-end-async"); // no tranisition, so view changed finished immediately
           //console.log("router no animation");
         }
@@ -689,7 +699,7 @@
       navigateTo: function(e) {
 
         var view = e.detail;
-
+        console.log("at-app-session navigateTo" + view);
         // navigate to external url
         if (view.indexOf("://") > 0 || view.indexOf("/") == 0) {
           location.replace(view);
@@ -720,8 +730,11 @@
         document.addEventListener('view-changed', this.viewChanged, false);
         document.addEventListener('view-args-changed', this.viewArgsChanged, false);
         document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
+      },
+      attached: function (e) {
+        console.log("plc at-core-router attached");
       }
-
+ 
     });
   })();
 </script>
