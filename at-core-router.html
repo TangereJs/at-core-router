@@ -203,14 +203,17 @@
           value: null
         }
       },
+
       colorChanged: function(value, old) {
         var color = value || this.defaultColor || this.properties.defaultColor.value;
         Polymer.signal("app-color", value);
       },
+
       captionChanged: function(value, old) {
         //document.title = value;        
         Polymer.signal("app-caption", value);
       },
+
       open: function(view) {
 
         if (!view) {
@@ -552,9 +555,6 @@
         // use default view name?
         if (viewName == "") viewName = e.detail.appFrame.defaultView;
 
-        // add default prefix if no prefix is provided
-        if (viewName.indexOf("-") < 0) viewName = "at-" + viewName;
-
         // remove .variant
         if (viewName.indexOf(".") >= 0) {
           viewName = viewName.substr(0, viewName.indexOf("."));
@@ -670,12 +670,17 @@
       },
 
       start: function() {
-        console.log("at-core-router start");
+        //console.log("at-core-router start");
+
         // save atApp reference
         current.appFrame = this;
 
         // get initial viewState
         var vs = getViewStateFromHash();
+
+        // ignore views not matching  *-*/*-* pattern and fallback to default
+        // handles fitbit and facebook oauth hash #_=_ 
+        if (vs.view.indexOf("-") < 0 || vs.view.indexOf("/") < 0) vs.view = "";
 
         // set default view if no view name exists
         if (vs.view == "") vs.view = this.defaultView;
@@ -696,10 +701,12 @@
         // fire view-changed to load initial view
         fireEvent("view-changed", vs);
       },
+
       navigateTo: function(e) {
 
         var view = e.detail;
-        console.log("at-app-session navigateTo" + view);
+        //console.log("at-app-session navigateTo" + view);
+
         // navigate to external url
         if (view.indexOf("://") > 0 || view.indexOf("/") == 0) {
           location.replace(view);
@@ -721,8 +728,8 @@
         }
 
         this.open(view);
-
       },
+
       ready: function() {
         console.log("at-core-router ready");
         this.context = current;
