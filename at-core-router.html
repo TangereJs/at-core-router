@@ -54,14 +54,14 @@
         display: none;
       }
     </style>
-    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar"
-      on-app-scroll-to-top="appScrollToTop"></at-core-signals>
+    <at-core-signals on-navigate-to="navigateTo" on-session-ready="start" on-register-state-var="registerVar" on-update-state-var="updateVar" on-app-scroll-to-top="appScrollToTop"></at-core-signals>
     <div id="content"></div>
   </template>
 </dom-module>
 
 <script>
   (function() {
+    Tangere.session.appMode = true;  // app with router
 
     var stateHistory = []; // used to automatically detect a "back" navigation
 
@@ -219,7 +219,7 @@
         if (!view) {
           view = this.defaultView;
         }
-
+        
         // signal to close side panel before navigating
         Polymer.signal("before-navigate", view);
 
@@ -330,7 +330,7 @@
       },
 
       _viewShowAsync: function(e, elementName, newElem) {
-
+        
         this._waitForViewReady = false;
 
         var appFrame = e.detail.appFrame;
@@ -664,6 +664,9 @@
         // update back button status
         Polymer.signal("navigate-back-status", stateHistory.length > 1);
 
+        // signal to close side panel before navigating
+        Polymer.signal("before-navigate", newVs.view);
+
         // fire event
         //console.log("router: " + eventName);
         fireEvent(eventName, newVs);
@@ -703,7 +706,7 @@
       },
 
       navigateTo: function(e) {
-
+        
         var view = e.detail;
         //console.log("at-app-session navigateTo" + view);
 
@@ -739,7 +742,7 @@
         document.addEventListener('router-navigate-to', this.navigateTo.bind(this), false);
       },
       attached: function (e) {
-        console.log("plc at-core-router attached");
+        //console.log("at-core-router attached");
       }
  
     });
